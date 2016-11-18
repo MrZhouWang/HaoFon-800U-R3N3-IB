@@ -1,0 +1,1 @@
+"..\src\led.c" OPTIMIZE (8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\led.lst) TABS (2) OBJECT(..\UV4\led.obj)

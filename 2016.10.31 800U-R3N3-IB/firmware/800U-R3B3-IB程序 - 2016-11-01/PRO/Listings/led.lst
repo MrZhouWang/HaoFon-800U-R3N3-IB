@@ -1,0 +1,293 @@
+C51 COMPILER V9.52.0.0   LED                                                               11/17/2016 16:55:10 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE LED
+OBJECT MODULE PLACED IN ..\OUT\led.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\SRC\led.c ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE INCDIR(..\
+                    -INC) DEBUG OBJECTEXTEND PRINT(.\Listings\led.lst) TABS(2) OBJECT(..\OUT\led.obj)
+
+line level    source
+
+   1          #define LED_GLOBAL
+   2          #include "include.h"
+   3          
+   4          INT8U LedStatus = LED_NONE;   //µÆ×´Ì¬
+   5          INT16U  LedDelayCnt = 0;
+   6          //////////////////////////////////////////////////////////////////////////////////
+   7          //// ¹¦ÄÜÃèÊö : LEDÉÏµçÍê³ÉµÆÉÁË¸
+   8          //// ÊäÈë²ÎÊý : 
+   9          //// ·µ»Ø²ÎÊý : 
+  10          //// ËµÃ÷     :  
+  11          //////////////////////////////////////////////////////////////////////////////////
+  12          void led_blink(void)
+  13          {
+  14   1        LED_R_ON ;
+  15   1        delay_ms(1000); 
+  16   1        LED_R_OFF ; 
+  17   1      
+  18   1      
+  19   1        LED_G_ON ;  
+  20   1        delay_ms(1000);
+  21   1        LED_G_OFF ;
+  22   1          
+  23   1        LED_B_ON; 
+  24   1        delay_ms(1000); 
+  25   1        LED_G_OFF ;
+  26   1        
+  27   1        
+  28   1      }
+  29          //////////////////////////////////////////////////////////////////////////////////
+  30          //// ¹¦ÄÜÃèÊö : ADC»ù×¼µçÑ¹²É¼¯´íÎóLEDµÆÉÁË¸ »úÖÆ
+  31          //// ÊäÈë²ÎÊý : 
+  32          //// ·µ»Ø²ÎÊý : 
+  33          //// ËµÃ÷     :  
+  34          //////////////////////////////////////////////////////////////////////////////////
+  35          void ADC_BASE_ERR_BLINK(void)
+  36          {
+  37   1              
+  38   1              
+  39   1              if(ADC_BaseLedState == ON)
+  40   1              {
+  41   2                 ADC_BASE_ERR_ON();
+  42   2                 ADC_BaseLedState = OFF;
+  43   2                 
+  44   2                 ADC_BaseErrNum = ADC_BaseErrNumIintON;    //¸³ÖµLEDÉÁË¸Ê±¼ä ÔÚ¶¨Ê±Æ÷Àï½øÐÐ¼õÖµ
+  45   2              }
+  46   1              else if(ADC_BaseLedState == OFF)
+  47   1              {
+  48   2                 ADC_BASE_ERR_OFF();
+  49   2                 ADC_BaseLedState = ON;
+  50   2                 
+  51   2                 ADC_BaseErrNum = ADC_BaseErrNumIintOFF;   //¸³ÖµLEDÉÁË¸Ê±¼ä ÔÚ¶¨Ê±Æ÷Àï½øÐÐ¼õÖµ
+  52   2              }
+  53   1              //ADC_BaseErrNu=0 ;
+  54   1      }
+C51 COMPILER V9.52.0.0   LED                                                               11/17/2016 16:55:10 PAGE 2   
+
+  55          //////////////////////////////////////////////////////////////////////////////////
+  56          //// ¹¦ÄÜÃèÊö : ADC»ù×¼µçÑ¹²É¼¯´íÎóLEDµÆÉÁË¸
+  57          //// ÊäÈë²ÎÊý : 
+  58          //// ·µ»Ø²ÎÊý : 
+  59          //// ËµÃ÷     :  
+  60          //////////////////////////////////////////////////////////////////////////////////
+  61          void ADC_BASE_ERR_ON(void)
+  62          {
+  63   1          LED_R_ON ;
+  64   1          LED_B_OFF;
+  65   1          LED_G_OFF;
+  66   1      }
+  67          //////////////////////////////////////////////////////////////////////////////////
+  68          //// ¹¦ÄÜÃèÊö : ADC»ù×¼µçÑ¹²É¼¯´íÎóLEDµÆÉÁË¸
+  69          //// ÊäÈë²ÎÊý : 
+  70          //// ·µ»Ø²ÎÊý : 
+  71          //// ËµÃ÷     :  
+  72          //////////////////////////////////////////////////////////////////////////////////
+  73          void ADC_BASE_ERR_OFF(void)
+  74          {
+  75   1          LED_R_OFF ;
+  76   1          LED_B_OFF;
+  77   1          LED_G_OFF;
+  78   1      }
+  79          
+  80          //////////////////////////////////////////////////////////////////////////////////
+  81          //// ¹¦ÄÜÃèÊö : IO³õÊ¼»¯
+  82          //// ÊäÈë²ÎÊý : 
+  83          //// ·µ»Ø²ÎÊý : 
+  84          //// ËµÃ÷     :  
+  85          //////////////////////////////////////////////////////////////////////////////////
+  86          void PORT_Init (void)
+  87          { 
+  88   1        P0MDIN  &= ~0x02;         // P0.1,ÎªÄ£ÄâÊäÈë  0=Ä£ÄâÊäÈë£¬1=Êý×ÖÊäÈë
+  89   1        P0MDIN  |= 0x10;          // P0.4 DIGITAL INPUT
+  90   1        P0MDOUT |= 0x0C;          // P0.2,3,ÎªÍÆÍìÊä³ö·½Ê½  
+  91   1        P0MDOUT &= ~(0xC1);       // P0.0,6,7ÎªOpen DrainÊä³ö·½Ê½ 
+  92   1        XBR0    |= 0x4F;          // Ìø¹ýÊ¹ÓÃµÄIO¿ÚP0.0 1 2 3 6 7   
+  93   1        XBR1    |= 0x03;          // °ÑUART TXÓ³Éäµ½P0.4 RXÓ³Éäµ½P0.5
+  94   1        XBR2    |= 0X40;          // Ê¹ÄÜ½»²æ¿ª¹Ø£¬Ê¹ÄÜÈõÉÏÀ­
+  95   1      
+  96   1        
+  97   1      
+  98   1        led_light_ctrl(LED_NONE); // ¹ØµôLED
+  99   1           
+ 100   1        pEMILEDCTL = OFF;         // ·¢Éä¹Ü¹Ø¶Ï
+ 101   1      }
+ 102          //////////////////////////////////////////////////////////////////////////////////
+ 103          //// ¹¦ÄÜÃèÊö : led¿ØÖÆ
+ 104          //// ÊäÈë²ÎÊý : 
+ 105          //// ·µ»Ø²ÎÊý : 
+ 106          //// ËµÃ÷     :  
+ 107          //////////////////////////////////////////////////////////////////////////////////
+ 108          void led_light_ctrl(INT8U leds)
+ 109          {
+ 110   1        switch (leds)
+ 111   1        {
+ 112   2          case LED_RED:     LED_G_OFF; LED_B_OFF;  LED_R_ON;  break;    
+ 113   2          case LED_GREEN:   LED_R_OFF; LED_B_OFF;  LED_G_ON;  break;
+ 114   2          case LED_BLUE:    LED_R_OFF; LED_G_OFF;  LED_B_ON;  break;
+ 115   2          
+ 116   2          case LED_RG:      LED_B_OFF; LED_R_ON;   LED_G_ON;  break;    
+C51 COMPILER V9.52.0.0   LED                                                               11/17/2016 16:55:10 PAGE 3   
+
+ 117   2          case LED_RB:      LED_G_OFF; LED_R_ON;   LED_B_ON;  break;
+ 118   2          case LED_GB:      LED_R_OFF; LED_G_ON;   LED_B_ON;  break;
+ 119   2          case LED_RGB:     LED_R_ON;  LED_G_ON;   LED_B_ON;  break;      
+ 120   2          default:          LED_R_OFF; LED_G_OFF; LED_B_OFF;  break;
+ 121   2        }
+ 122   1      }
+ 123          /*******************************************************************************
+ 124                      Ö¸Ê¾µÆÉÁË¸¿ØÖÆÄ£Ê½
+ 125            input:   
+ 126                led_flash_period:      ÉÁË¸Ê±¼ä¼ä¸ô
+ 127                led_flash_NO:          ÉÁË¸µÆÐòºÅ
+ 128                led_flash_mode:        ÉÁË¸Ä£Ê½
+ 129            output:  none         
+ 130          *******************************************************************************/
+ 131          void CMD_led_flash(void)
+ 132          {
+ 133   1      /***********************LEDÖ¸Ê¾µÆ¿ØÖÆ*********************/    
+ 134   1        INT8U led_sts,led_mode;
+ 135   1        if( (TRUE == Key.b.Short))//&&(task_unfinish_num == OFF)&&(digital_led_loading == OFF))  
+ 136   1        {     
+ 137   2          
+ 138   2          led_mode = LED_FLASH_MODE_ALWAYS;
+ 139   2          if(para.str.KeyPressLed >= MAX_KEYPRESSLED)    // ÓÐ°´¼ü°´ÏÂ£¬Ôò¸ù¾ÝF5²ÎÊýÁÁµÆ
+ 140   2          {
+ 141   3            led_sts = led_flash_NO+1;
+ 142   3            if(led_sts >= MAX_KEYPRESSLED)
+ 143   3            { led_sts = LED_RED; }
+ 144   3          }
+ 145   2          else
+ 146   2          { led_sts = para.str.KeyPressLed; }    
+ 147   2        }             
+ 148   1        else 
+ 149   1        {                                                // ÎÞ°´¼ü°´ÏÂ
+ 150   2           if( (digital_led_loading == ON) )
+ 151   2             { led_sts = LED_NONE;    }                  // ½ø¶ÈÌõµÈ´ýÊ±ÃðÏÔÊ¾
+ 152   2           else if(ClearFlg == ON)                       //³õÊ¼»¯Çå³ýµÄÊ±ºòled_flash_NO=LED_NONE; 
+ 153   2             { MulticastStatus=LED_NONE; led_flash_NO=led_sts = LED_NONE; ClearFlg = OFF;}   
+ 154   2           else{ led_sts = led_flash_NO;   led_mode = led_flash_mode; }      
+ 155   2        }
+ 156   1        
+ 157   1      /******************ÉèÖÃµÆÉ« *******************************************/
+ 158   1        if(led_sts == LED_NONE)
+ 159   1        { led_light_ctrl(LED_NONE);  }                        // È«Ãð
+ 160   1        else
+ 161   1        { 
+ 162   2          if(led_mode == LED_FLASH_MODE_ALWAYS)               // ³£ÁÁÏÔÊ¾
+ 163   2          { led_light_ctrl(led_sts); }                        // ½öµãÁÁ¶ÔÓ¦ÑÕÉ«
+ 164   2          else  if(sys.led_flash_count == 0)                  // ÉÁË¸ÏÔÊ¾£¬Ê±¼äµ½
+ 165   2          {                                           
+ 166   3            if(led_flash_status == 0)
+ 167   3            {                                                 //µÆÃð¼ÆÊýÆ÷µ½£¬ÇÐ»»µ½µÆÁÁ×´Ì¬£¬²¢ÇÒÉèÖÃ¸Ä±äµÆÁÁÖÜÆÚ²
+             -ÎÊý
+ 168   4              led_light_ctrl(led_sts);                        // ½öµãÁÁ¶ÔÓ¦ÑÕÉ«
+ 169   4              led_flash_status = 1;                           // ÇÐ»»µ½µÆÁÁ×´Ì¬
+ 170   4              sys.led_flash_count = GetLedOnTime();           // È¡µÆÁÁÊ±¼ä
+ 171   4            }
+ 172   3            else
+ 173   3            {                                                 //µÆÁÁ¼ÆÊýÆ÷µ½£¬ÇÐ»»µ½µÆÃð×´Ì¬£¬²¢ÇÒÉèÖÃ¸Ä±äµÆÃðÖÜÆÚ²
+             -ÎÊý
+ 174   4              led_light_ctrl(LED_NONE);                       // È«Ãð
+ 175   4              led_flash_status = 0;                           // ÇÐ»»µ½µÆÃð×´Ì¬
+ 176   4              sys.led_flash_count = GetLedOffTime();          // È¡µÆÃðÊ±¼ä
+C51 COMPILER V9.52.0.0   LED                                                               11/17/2016 16:55:10 PAGE 4   
+
+ 177   4            }
+ 178   3          }
+ 179   2        } 
+ 180   1      }
+ 181          /*******************************************************************************
+ 182            »ñÈ¡µÆÁÁÊ±¼ä£¬µ¥Î»ms   100msÎªµ¥Î»
+ 183            Input :   none
+ 184            Output :  ·µ»ØÁÁµÄÊ±¼ä±¶Êý
+ 185          *******************************************************************************/
+ 186          
+ 187          INT16U GetLedOnTime()
+ 188          {
+ 189   1        UINT16 unRet = led_flash_period;
+ 190   1        switch(led_flash_mode)
+ 191   1        {
+ 192   2        case LED_FLASH_MODE_ALWAYS  :                              //³£ÁÁÄ£Ê½£¬²»»áµ÷ÓÃ´Ëº¯Êý
+ 193   2          break;      
+ 194   2        case LED_FLASH_MODE_1V1:
+ 195   2          unRet = led_flash_period;
+ 196   2          break;
+ 197   2        case LED_FLASH_MODE_1V2:
+ 198   2          unRet = led_flash_period;
+ 199   2          break;
+ 200   2        case LED_FLASH_MODE_1V5:
+ 201   2          unRet = led_flash_period;
+ 202   2          break;
+ 203   2        case LED_FLASH_MODE_1V10:
+ 204   2          unRet = led_flash_period;
+ 205   2          break;
+ 206   2        case LED_FLASH_MODE_2V1:
+ 207   2          unRet = led_flash_period*2;
+ 208   2          break;
+ 209   2        case LED_FLASH_MODE_5V1:
+ 210   2          unRet = led_flash_period*5;
+ 211   2          break;
+ 212   2        case LED_FLASH_MODE_10V1:
+ 213   2          unRet = led_flash_period*10;
+ 214   2          break;
+ 215   2        default:
+ 216   2          break;
+ 217   2        }
+ 218   1        return unRet;
+ 219   1      }
+ 220          /*******************************************************************************
+ 221            »ñÈ¡µÆÃðÊ±¼ä£¬µ¥Î»ms   100msÎªµ¥Î»
+ 222            Input :   none
+ 223            Output :  ·µ»ØÃðµÄÊ±¼ä±¶Êý
+ 224          *******************************************************************************/
+ 225          
+ 226          INT16U GetLedOffTime()
+ 227          {
+ 228   1        UINT16 unRet = led_flash_period;
+ 229   1        switch(led_flash_mode)
+ 230   1        {
+ 231   2        case LED_FLASH_MODE_ALWAYS:                                     //³£ÁÁÄ£Ê½£¬²»»áµ÷ÓÃ´Ëº¯Êý
+ 232   2          break;        
+ 233   2        case LED_FLASH_MODE_1V1:
+ 234   2          unRet = led_flash_period;
+ 235   2          break;
+ 236   2        case LED_FLASH_MODE_2V1:
+ 237   2          unRet = led_flash_period;
+ 238   2          break;
+C51 COMPILER V9.52.0.0   LED                                                               11/17/2016 16:55:10 PAGE 5   
+
+ 239   2        case LED_FLASH_MODE_5V1:
+ 240   2          unRet = led_flash_period;
+ 241   2          break;
+ 242   2        case LED_FLASH_MODE_10V1:
+ 243   2          unRet = led_flash_period;
+ 244   2          break;
+ 245   2        case LED_FLASH_MODE_1V2:
+ 246   2          unRet = led_flash_period*2;
+ 247   2          break;
+ 248   2        case LED_FLASH_MODE_1V5:
+ 249   2          unRet = led_flash_period*5;
+ 250   2          break;
+ 251   2        case LED_FLASH_MODE_1V10:
+ 252   2          unRet = led_flash_period*10;
+ 253   2          break;
+ 254   2        default:
+ 255   2          break;
+ 256   2        }
+ 257   1        return unRet;
+ 258   1      }
+ 259          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    470    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     19       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,79 @@
+Removed Pin From Net: NetName=GND Pin=C11-2
+Removed Pin From Net: NetName=GND Pin=D2-1
+Removed Pin From Net: NetName=GND Pin=D3-1
+Removed Pin From Net: NetName=NetF1_1 Pin=OUT-1
+Removed Pin From Net: NetName=GND Pin=Q1-2
+Removed Pin From Net: NetName=+24V Pin=Q2-2
+Removed Pin From Net: NetName=GND Pin=Q6-2
+Removed Pin From Net: NetName=3.3V Pin=R1-2
+Removed Pin From Net: NetName=+24V Pin=R23-2
+Removed Pin From Net: NetName=LED_B Pin=U2-4
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=D2
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=D3
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=OUT
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=Q1
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=Q2
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=Q6
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=R23
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=R24
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=R28
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=R29
+Removed Member From Class: ClassName=800U-R3N3_LED_V1.2 Member=SIN
+Change Component Footprint: Designator=R1 Old Footprint=R0603 New Footprint=2010
+Change Component Footprint: Designator=R5 Old Footprint=R0603 New Footprint=2010
+Change Component Comment : Designator=R1 Old Comment=10K New Comment=20R
+Change Component Comment : Designator=R5 Old Comment=10K New Comment=20R 
+Change Component Comment : Designator=LED_CTL Old Comment=CTL New Comment=
+Change Component Description : Designator=F1 Old Description=Fuse New Description=ø…ª÷∏¥±£œ’Àø
+Change Component Description : Designator=F2 Old Description=Fuse New Description=ø…ª÷∏¥±£œ’Àø
+Change Component Description : Designator=C11 Old Description=Ã˘∆¨µÁ»› New Description=Ã˘∆¨Ã’¥…µÁ»›
+Change Component Library : Designator=C11 Old Library=TMJD1.0.PCBLib New Library=Miscellaneous Devices.IntLib
+Added Component: Designator=485A(HOLE_SMD)
+Added Component: Designator=485B(HOLE_SMD)
+Added Component: Designator=T1(HSMA)
+Added Component: Designator=T2(HSMA)
+Added Component: Designator=U5(SO-1.27-8/4.0)
+Added Pin To Net: NetName=GND Pin=C11-1
+Added Pin To Net: NetName=VDD_+5V Pin=C11-2
+Added Pin To Net: NetName=LED_B Pin=P1-2
+Added Pin To Net: NetName=NetF1_1 Pin=R1-1
+Added Pin To Net: NetName=GND Pin=T1-1
+Added Pin To Net: NetName=NetF1_1 Pin=T1-2
+Added Pin To Net: NetName=GND Pin=T2-1
+Added Pin To Net: NetName=LED_B Pin=U2-10
+Added Pin To Net: NetName=GND Pin=U5-5
+Added Pin To Net: NetName=VDD_+5V Pin=U5-8
+Added Pin To Net: NetName=M485_CTRL Pin=U2-4
+Added Pin To Net: NetName=M485_CTRL Pin=U5-2
+Added Pin To Net: NetName=M485_CTRL Pin=U5-3
+Added Net: Name=M485_CTRL
+Added Pin To Net: NetName=Net485A_1 Pin=485A-1
+Added Pin To Net: NetName=Net485A_1 Pin=F2-2
+Added Net: Name=Net485A_1
+Added Pin To Net: NetName=Net485B_1 Pin=485B-1
+Added Pin To Net: NetName=Net485B_1 Pin=F1-2
+Added Net: Name=Net485B_1
+Added Pin To Net: NetName=NetF2_1 Pin=F2-1
+Added Pin To Net: NetName=NetF2_1 Pin=R5-1
+Added Pin To Net: NetName=NetF2_1 Pin=T2-2
+Added Net: Name=NetF2_1
+Added Pin To Net: NetName=NetR1_2 Pin=R1-2
+Added Pin To Net: NetName=NetR1_2 Pin=U5-7
+Added Net: Name=NetR1_2
+Added Pin To Net: NetName=NetR5_2 Pin=R5-2
+Added Pin To Net: NetName=NetR5_2 Pin=U5-6
+Added Net: Name=NetR5_2
+Added Pin To Net: NetName=RXD Pin=U2-7
+Added Pin To Net: NetName=RXD Pin=U5-1
+Added Net: Name=RXD
+Added Pin To Net: NetName=TXD Pin=U2-6
+Added Pin To Net: NetName=TXD Pin=U5-4
+Added Net: Name=TXD
+Change Class Name : Old Net Name=800U-R3N3_LED_V1.2 New Net Name=800U-R3N3 IB_LED_V1.0
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component 485A ∫∏≈Ã
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component 485B ∫∏≈Ã
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component D10 5050RGB
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component D11 5050RGB
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component T1 
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component T2 
+Added Member To Class: ClassName=800U-R3N3 IB_LED_V1.0 Member=Component U5 MAX3085

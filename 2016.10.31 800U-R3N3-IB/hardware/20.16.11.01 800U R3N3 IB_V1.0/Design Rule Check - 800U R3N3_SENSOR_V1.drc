@@ -1,0 +1,23 @@
+Protel Design System Design Rule Check
+PCB File : J:\工作同步\工作同步\Pick-to-light\800U\800U R3N3\PCB\800U R3N3_V1.3\800U R3N3_SENSOR_V1.2.PcbDoc
+Date     : 2016-9-9
+Time     : 上午 09:36:18
+
+Processing Rule : Width Constraint (Min=0.254mm) (Max=0.6mm) (Preferred=0.254mm) (All)
+Rule Violations :0
+
+Processing Rule : Power Plane Connect Rule(Relief Connect )(Expansion=0.508mm) (Conductor Width=0.254mm) (Air Gap=0.254mm) (Entries=4) (Isvia)
+Rule Violations :0
+
+Processing Rule : Clearance Constraint (Gap=0.3mm) (All),(All)
+Rule Violations :0
+
+Processing Rule : Un-Routed Net Constraint ( (All) )
+Rule Violations :0
+
+Processing Rule : Short-Circuit Constraint (Allowed=No) (All),(All)
+Rule Violations :0
+
+
+Violations Detected : 0
+Time Elapsed        : 00:00:00

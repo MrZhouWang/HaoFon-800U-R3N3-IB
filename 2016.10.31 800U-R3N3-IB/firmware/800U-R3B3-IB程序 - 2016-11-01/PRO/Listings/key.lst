@@ -1,0 +1,199 @@
+C51 COMPILER V9.52.0.0   KEY                                                               11/17/2016 16:55:10 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN ..\OUT\key.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\SRC\key.c ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE INCDIR(..\
+                    -INC) DEBUG OBJECTEXTEND PRINT(.\Listings\key.lst) TABS(2) OBJECT(..\OUT\key.obj)
+
+line level    source
+
+   1          #define KEY_GLOBAL
+   2          #include "include.h"
+   3          UINT8 idata keyStatus = OFF;    //按键状态
+   4          
+   5          //////////////////////////////////////////////////////////////////////////////////
+   6          //// 功能描述 : 获取按键值
+   7          //// 输入参数 : 
+   8          //// 返回参数 : 返回键值
+   9          //// 说明     :  
+  10          //////////////////////////////////////////////////////////////////////////////////
+  11          INT8U Scan_Val()
+  12          {   
+  13   1          INT8U keyval = CMD_KEY_NULL;   
+  14   1          if((f_prossout == TRUE)&&(AD_Base_OK == OK))                      //按键检测机制 限定是在基准采样完后再
+             -做比较
+  15   1          { 
+  16   2             f_prossout = FALSE;
+  17   2             
+  18   2             
+  19   2             if((sampDat>RevBase)&&(sampDat-RevBase)>Dval)   //判断是否为开关触发
+  20   2               out++;
+  21   2             else                 //如果遮挡时间无效 重新计时
+  22   2               out=0; 
+  23   2          }   
+  24   1          if(out>Dnum)            //有按键
+  25   1          {
+  26   2             out=Dnum+1;
+  27   2             keyval = CMD_KEY_OK;      
+  28   2          }
+  29   1          else
+  30   1             keyval = CMD_KEY_NULL;
+  31   1          
+  32   1          return( keyval );
+  33   1      }
+  34          /************************************************************************
+  35          ** 功能描述： Key scan and Key Function module
+  36          ** 时间：2009-9-15 16:46
+  37          ************************************************************************/
+  38          void Key_Scan(void)
+  39          {   
+  40   1        INT8U keyval;
+  41   1      
+  42   1        /*------------------------------------------------------------------*/
+  43   1        // 系统锁定或接收到数据，清按键按下标志，不扫描按键
+  44   1        if(SystemLocked == ON)  { Key.b.Short = FALSE; return; }
+  45   1        /*------------------------------------------------------------------*/
+  46   1        //扫描标志使能确认,定时器32ms使能一次
+  47   1        if(f_KeyEnable == FALSE){return;}
+  48   1        //f_KeyEnable = FALSE;    //扫描则清使能标志
+  49   1        /*------------------------------------------------------------------*/  
+  50   1        keyval = Scan_Val();        
+  51   1        /*------------------------------------------------------------------*/
+  52   1      
+  53   1      
+C51 COMPILER V9.52.0.0   KEY                                                               11/17/2016 16:55:10 PAGE 2   
+
+  54   1      
+  55   1        if( CMD_KEY_NULL == keyval )
+  56   1        {                               //无按键按下
+  57   2          if( TRUE == Key.b.Short )
+  58   2          {                             // 刚刚松开
+  59   3             if(beSettingAddr != 0)
+  60   3             {  }                       //亮灯状态             
+  61   3          }         
+  62   2          Key.b.Short    = FALSE;       //短按释放
+  63   2          Key.b.LongOnce = FALSE;       //长按一次释放  
+  64   2          Key.b.Long     = FALSE;       //长按释放          
+  65   2        }
+  66   1        else if( CMD_KEY_OK == keyval ) //第一次按下
+  67   1        {   
+  68   2      
+  69   2          if( (FALSE == Key.b.Short) )
+  70   2          { Key.b.Short = TRUE; keyStatus = keyval; Process_Keyboard(); }   // 执行按键功能
+  71   2              
+  72   2          Key.b.Short = TRUE;           //短按有效
+  73   2          Key.OnCnt = 0x00;             //按下时间初始化
+  74   2        }
+  75   1        Key.Backup = keyval; 
+  76   1      }
+  77          /*******************************************************************************
+  78                      按键处理程序
+  79            input:   none     
+  80            output:  none         
+  81          *******************************************************************************/
+  82          void Process_Keyboard(void)
+  83          {    
+  84   1        UINT16 updata_num = 0;
+  85   1      
+  86   1        
+  87   1        if(beSettingAddr == 1)                      // 主机广播设定地址
+  88   1        { 
+  89   2          para.str.address = para_bk.str.address;   // 保存设定的地址
+  90   2          SaveParaToBlock();
+  91   2      
+  92   2          led_flash_NO  = LED_BLUE;                 //接收前亮第一组灯，接收后亮第二组灯
+  93   2          beSettingAddr   = 2;
+  94   2        }
+  95   1        
+  96   1        else if((task_unfinish_num > 0)&&(digital_led_loading == OFF)) //只有在未完成任务不空，并且非显示进度条时
+             -，才响应OK键。
+  97   1        {       
+  98   2          if(task_finished_num == 0)                         //一个都没完成情况下
+  99   2          {
+ 100   3            
+ 101   3            task_finished_num = 1;
+ 102   3            task_finished_NO[0]   = task_unfinish_NO[0];     //完成的块中刷入数据
+ 103   3            task_ed_goods_numH[0] = task_un_goods_numH[0];
+ 104   3            task_ed_goods_numL[0] = task_un_goods_numL[0];
+ 105   3            
+ 106   3            if(task_unfinish_num == 2)                       //原先有2个任务队列，则未完成块中作处理
+ 107   3            {
+ 108   4                                                        
+ 109   4              task_unfinish_NO[0]    = task_unfinish_NO[1];  //当未完成块的数据=2时，数据前移  
+ 110   4              task_un_goods_numH[0]  = task_un_goods_numH[1];
+ 111   4              task_un_goods_numL[0]  = task_un_goods_numL[1];
+ 112   4            
+ 113   4              task_curOri_goods_numH = task_un_goods_numH[0];
+ 114   4              task_curOri_goods_numL = task_un_goods_numL[0];
+C51 COMPILER V9.52.0.0   KEY                                                               11/17/2016 16:55:10 PAGE 3   
+
+ 115   4      
+ 116   4            }
+ 117   3            task_unfinish_num--;
+ 118   3          }
+ 119   2          
+ 120   2          else if(task_finished_num == 1)                    //一个已完成情况下
+ 121   2          {
+ 122   3            
+ 123   3            task_finished_num = 2;                           //完成的块中刷入数据
+ 124   3            task_finished_NO[1]    = task_unfinish_NO[0];
+ 125   3            task_ed_goods_numH[1]  = task_un_goods_numH[0];
+ 126   3            task_ed_goods_numL[1]  = task_un_goods_numL[0];
+ 127   3            
+ 128   3            if(task_unfinish_num == 2)                       //完成的数据做历史存储以供回显使用
+ 129   3            {
+ 130   4                                                         
+ 131   4              task_unfinish_NO[0]     = task_unfinish_NO[1]; //当未完成块的数据=2时，数据前移 
+ 132   4              task_un_goods_numH[0]   = task_un_goods_numH[1];
+ 133   4              task_un_goods_numL[0]   = task_un_goods_numL[1];
+ 134   4              
+ 135   4              task_curOri_goods_numH  = task_un_goods_numH[0];
+ 136   4              task_curOri_goods_numL  = task_un_goods_numL[0];
+ 137   4            }
+ 138   3            task_unfinish_num--;
+ 139   3          }
+ 140   2          
+ 141   2          if(task_unupdate_num == 0 && task_unfinish_num ==0) //本次作业一全部完成任务，灯灭，数据清零  
+ 142   2          {
+ 143   3            TaskStats    = TASK_FINISH;                       // 任务完成
+ 144   3            led_flash_NO = para.str.FinishedLED;              //FinishedLED;
+ 145   3            led_flash_mode = LED_FLASH_MODE_ALWAYS;           // 常亮模式
+ 146   3          }     
+ 147   2          else                                                //本次作业还有待拾取任务，进行拉条显示
+ 148   2          { 
+ 149   3            if(task_unfinish_num > 0)                         //任务缓冲区空或者主机还有剩余任务,显示-------
+ 150   3            {
+ 151   4              digital_led_loading = ON;
+ 152   4              sys.digital_led_load_cnt= (para.str.WtTime+1)*100;//(WtTime+1)*100;//LOADING短时间//DIGITAL_LED_REFRES
+             -H_DELAY;//LOADING短时间
+ 153   4            }
+ 154   3            else if(task_unupdate_num > 0)                    //本次作业还有任务，但是任务还没下发到本设备中，显示-----
+             --
+ 155   3            {
+ 156   4              digital_led_loading = ON;
+ 157   4              sys.beWaitNewData = ON;                         //等待新数据下发
+ 158   4              sys.digital_led_load_cnt = DIGITAL_LED_REFRESH_DELAY_LONG;//LOADING长时间 
+ 159   4            }
+ 160   3          }
+ 161   2        }
+ 162   1      
+ 163   1        keyStatus = CMD_KEY_NULL;
+ 164   1      }
+ 165          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    383    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       3
+   IDATA SIZE       =     21    ----
+C51 COMPILER V9.52.0.0   KEY                                                               11/17/2016 16:55:10 PAGE 4   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

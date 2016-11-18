@@ -1,0 +1,781 @@
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE PROCESS
+OBJECT MODULE PLACED IN ..\UV4\process.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\src\process.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND 
+                    -PRINT(.\process.lst) TABS(2) OBJECT(..\UV4\process.obj)
+
+line level    source
+
+   1          #include "extern_symbol.h" 
+   2          
+   3          #define DATA_LEN        7
+   4          #define DEVICE_NAME_LEN   23
+   5          
+   6          /*******************************************************************************
+   7                      ×÷ÒµÃüÁî
+   8            input:   none     
+   9            output:  none         
+  10          *******************************************************************************/
+  11          void Commu_Task_Process(void)
+  12          {
+  13   1        UINT16 usReTaskNum;       //±¾´ÎÏÂ·¢µÄ"µç×Ó±êÇ©ÏÔÊ¾ÄÚÈÝ"¸öÊý£¬
+  14   1        UINT32 unEplased_Led_LoadCount; //À­Ìõ¹ýÈ¥µÄÊ±¼ä
+  15   1        UINT8 i = 0,curIndex = 0;
+  16   1        //ÏÔÊ¾Êý¾Ý»ñÈ¡£¨»õÎ»ºÅ£¬ÊýÁ¿£©
+  17   1        //±¾´ÎÏÂ·¢µÄ"µç×Ó±êÇ©ÏÔÊ¾ÄÚÈÝ"¸öÊý£¬     
+  18   1        usReTaskNum = (uart.rBuffer[9])&0X0F;       
+  19   1        //±¾´Î×÷ÒµÖÐ»¹Î´ÏÂ·¢µÄ¸öÊý
+  20   1        task_unupdate_num = uart.rBuffer[10];
+  21   1      
+  22   1        if((task_unupdate_num != 0)||(usReTaskNum != 0))
+  23   1        { TaskStats = TASK_RUN; }    // ÈÎÎñÔËÐÐ
+  24   1        //ÏÈ³õÊ¼»¯Êý¾Ý
+  25   1        //ÓÐ2×é´ýÏÔÊ¾Êý¾ÝÏÂÀ´£¬Ôò½«Ô­À´µÄÊý¾Ý¶¼³åµô£¬°üÀ¨UNÇøÓëEDÇø
+  26   1        switch(LastSoftGetOkCount)
+  27   1        {
+  28   2        case 0:     //×÷ÒµÆô¶¯µÄÊ±ºòµÚÒ»´Î·¢
+  29   2          {
+  30   3            //»ØÏÔÊý¾Ý´¦ÀíÇøÓò£¬ÐÂÀ´Ò»´Î×÷ÒµÈÎÎñµÄÊý¾Ý,µ±Ç°ËùÓÐÈÎÎñÏÈÇå³ý(Éè±¸2´ËÖØ¸´½ÓÊÕ´ËÃüÁîÊ±),»ØÏÔÊý¾ÝÇåÁã
+  31   3            task_unfinish_num = 0;
+  32   3            task_finished_num = 0;
+  33   3      
+  34   3      //      ucBackDispMode = OFF;
+  35   3            break;
+  36   3          }
+  37   2        case 1:    //×÷ÒµÆô¶¯ºó£¬ÉÏÎ»»ú·¢±¾´ÎÃüÁîÖ®Ç°²É¼¯µ½1×éÍê³ÉµÄÏÔÊ¾
+  38   2          {
+  39   3            task_finished_num--;
+  40   3            if(task_finished_num == 1)
+  41   3            {
+  42   4              //ºóÍùÇ°Å²
+  43   4              task_finished_NO[0]   = task_finished_NO[1];
+  44   4              task_ed_goods_numH[0]   = task_ed_goods_numH[1];
+  45   4              task_ed_goods_numL[0]   = task_ed_goods_numL[1];
+  46   4      //        taks_finished_Full[0]   = taks_finished_Full[1];
+  47   4            }
+  48   3            else
+  49   3            {
+  50   4              task_finished_num = 0;
+  51   4            }
+  52   3            break;
+  53   3          }
+  54   2        case 2:    //×÷ÒµÆô¶¯ºó£¬ÉÏÎ»»ú·¢±¾´ÎÃüÁîÖ®Ç°²É¼¯µ½2×éÍê³ÉµÄÏÔÊ¾
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 2   
+
+  55   2          {
+  56   3            task_finished_num = 0;
+  57   3            break;
+  58   3          }
+  59   2        default:
+  60   2          {
+  61   3            task_finished_num = 0;
+  62   3            break;
+  63   3          }
+  64   2        }
+  65   1        //¸ù¾Ý±¾´ÎÏÂ·¢ÏÔÊ¾µÄÈÎÎñ¸öÊý½øÐÐÐ­Òé½âÎö
+  66   1        switch(usReTaskNum)
+  67   1        {
+  68   2        case 0:    //ÎÞ´ËÖÖÇé¿ö
+  69   2          {
+  70   3            break;
+  71   3          }
+  72   2        case 1:   //À´1×éÐÂÊý¾Ý£¬¿´µ±Ç°Ê£Óà¸öÊý×ö´¦Àí
+  73   2          {
+  74   3            switch(task_unfinish_num)
+  75   3            {
+  76   4            case 0://Î´´¦ÀíÍêµÄ0¸ö£¬À´1¸ö£¬½ÓÊÕÊý¾Ý
+  77   4            case 2://Î´´¦ÀíÍêµÄ1¸ö£¬À´1¸ö£¬½ÓÊÕÊý¾Ý,Êµ¼Ê´ËÖÖÇé¿ö²»»á·¢Éú£¬·¢ÉúÊ±ÆäÊµÎªÉÏ²ãÈí¼þµ÷¶È³ö´í£¬Ä¿Ç°´¦Àí·½Ê
+             -½Îª»º³åÇøÇé¿ö£¬½ÓÊÕ1×éÊý¾Ý
+  78   4              { 
+  79   5                if(uart.rBuffer[5] == 0X00)     //Ã»ÓÐÐòÁÐºÅµÄÐ­Òé
+  80   5                {
+  81   6                  curIndex = 11;
+  82   6                  task_unfinish_NO[0]   = uart.rBuffer[curIndex];
+  83   6                  task_un_goods_numH[0]   = uart.rBuffer[curIndex+1];
+  84   6                  task_un_goods_numL[0]   = uart.rBuffer[curIndex+2];                     
+  85   6                }
+  86   5                else if(uart.rBuffer[5] == 0X01)  //´øÐòÁÐºÅµÄÐ­Òé
+  87   5                {
+  88   6                  //ÐòÁÐºÅÂÔ¹ý
+  89   6                  //¿âÎ»ºÅ+ÊýÁ¿
+  90   6                  curIndex = 12+uart.rBuffer[11];     //uart.rBuffer[11]ÎªµÚÒ»¸öÐòÁÐºÅ³¤¶È
+  91   6                  task_unfinish_NO[0]   = uart.rBuffer[curIndex];
+  92   6                  task_un_goods_numH[0]   = uart.rBuffer[curIndex+1];
+  93   6                  task_un_goods_numL[0]   = uart.rBuffer[curIndex+2];                     
+  94   6                }
+  95   5                task_curOri_goods_numH =  task_un_goods_numH[0];
+  96   5                task_curOri_goods_numL =  task_un_goods_numL[0];
+  97   5                task_unfinish_num = 1;
+  98   5                break;
+  99   5              }
+ 100   4            case 1://Î´´¦ÀíÍêµÄ1¸ö£¬À´1¸ö£¬½ÓÊÕÊý¾Ý
+ 101   4              {
+ 102   5                if(uart.rBuffer[5] == 0X00)     //Ã»ÓÐÐòÁÐºÅµÄÐ­Òé
+ 103   5                {
+ 104   6                  curIndex = 11;
+ 105   6                  task_unfinish_NO[1]   = uart.rBuffer[curIndex];
+ 106   6                  task_un_goods_numH[1]   = uart.rBuffer[curIndex+1];
+ 107   6                  task_un_goods_numL[1]   = uart.rBuffer[curIndex+2];                     
+ 108   6                }
+ 109   5                else if(uart.rBuffer[5] == 0X01)  //´øÐòÁÐºÅµÄÐ­Òé
+ 110   5                {
+ 111   6                  //ÐòÁÐºÅÂÔ¹ý
+ 112   6                  //¿âÎ»ºÅ+ÊýÁ¿
+ 113   6                  curIndex = 12+uart.rBuffer[11];     //uart.rBuffer[11]ÎªµÚÒ»¸öÐòÁÐºÅ³¤¶È
+ 114   6                  task_unfinish_NO[1]   = uart.rBuffer[curIndex];
+ 115   6                  task_un_goods_numH[1]   = uart.rBuffer[curIndex+1];
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 3   
+
+ 116   6                  task_un_goods_numL[1]   = uart.rBuffer[curIndex+2];                     
+ 117   6                }
+ 118   5                task_unfinish_num = 2;
+ 119   5                break;
+ 120   5              }
+ 121   4            }
+ 122   3            break;
+ 123   3          }
+ 124   2        case 2:   //À´2×éÐÂÊý¾Ý£¬Ô­ÏÈµÄ¶¼³åµô£¬È«²¿½ÓÊÕ
+ 125   2          {
+ 126   3            if(uart.rBuffer[5] == 0X00)     //Ã»ÓÐÐòÁÐºÅµÄÐ­Òé
+ 127   3            {
+ 128   4              curIndex = 11;
+ 129   4              task_unfinish_NO[0]   = uart.rBuffer[curIndex];
+ 130   4              task_un_goods_numH[0]   = uart.rBuffer[curIndex+1];
+ 131   4              task_un_goods_numL[0]   = uart.rBuffer[curIndex+2];                     
+ 132   4        
+ 133   4              curIndex = 14;
+ 134   4              task_unfinish_NO[1]   = uart.rBuffer[curIndex];
+ 135   4              task_un_goods_numH[1]   = uart.rBuffer[curIndex+1];
+ 136   4              task_un_goods_numL[1]   = uart.rBuffer[curIndex+2];                     
+ 137   4            }
+ 138   3            else if(uart.rBuffer[5] == 0X01)  //´øÐòÁÐºÅµÄÐ­Òé
+ 139   3            {
+ 140   4              //ÐòÁÐºÅ1ÂÔ¹ý
+ 141   4              //¿âÎ»ºÅ+ÊýÁ¿
+ 142   4              curIndex = 12+uart.rBuffer[11];     //uart.rBuffer[11]ÎªµÚÒ»¸öÐòÁÐºÅ³¤¶È
+ 143   4              task_unfinish_NO[0]   = uart.rBuffer[curIndex];
+ 144   4              task_un_goods_numH[0]   = uart.rBuffer[curIndex+1];
+ 145   4              task_un_goods_numL[0]   = uart.rBuffer[curIndex+2];                     
+ 146   4              //ÐòÁÐºÅ2ÂÔ¹ý
+ 147   4              //¿âÎ»ºÅ+ÊýÁ¿
+ 148   4              curIndex = curIndex+3+(uart.rBuffer[6]- uart.rBuffer[11] - 11);   //(uart.rBuffer[6]- uart.rBuffer[11] 
+             -- 11)ÎªµÚ¶þ¸öÐòÁÐºÅ³¤¶È
+ 149   4              task_unfinish_NO[1]   = uart.rBuffer[curIndex];
+ 150   4              task_un_goods_numH[1]   = uart.rBuffer[curIndex+1];
+ 151   4              task_un_goods_numL[1]   = uart.rBuffer[curIndex+2];                     
+ 152   4            }
+ 153   3            task_curOri_goods_numH =  task_un_goods_numH[0];
+ 154   3            task_curOri_goods_numL =  task_un_goods_numL[0];
+ 155   3            task_unfinish_num = 2;
+ 156   3            break;
+ 157   3          }
+ 158   2        }
+ 159   1      
+ 160   1        //ÉÁË¸µÆÐòºÅ
+ 161   1          led_flash_NO   = (uart.rBuffer[8] >> 5)&0X07;
+ 162   1        ClearFlg     = OFF;
+ 163   1      
+ 164   1        //ÉÁË¸Ê±¼ä¼ä¸ô
+ 165   1        switch((uart.rBuffer[8] >> 3)&0X3)
+ 166   1        {
+ 167   2        case 0:   led_flash_period = 80;    break;
+ 168   2        case 1:   led_flash_period = 160;   break;
+ 169   2        case 2:   led_flash_period = 320;   break;
+ 170   2        case 3:   led_flash_period = 640;   break;
+ 171   2        default:  led_flash_period = 640;   break;
+ 172   2        }
+ 173   1        //ÉÁË¸Ä£Ê½
+ 174   1          led_flash_mode   = (uart.rBuffer[8] >> 0)&0X07;
+ 175   1        //ÉÁË¸ÓÃÊý¾ÝÖÃÎ»
+ 176   1        led_flash_status = 0;
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 4   
+
+ 177   1        sys.led_flash_count = 0;
+ 178   1      
+ 179   1        //½ø¶ÈÌõÄ£Ê½ÏÂ´¦Àí
+ 180   1        if(sys.beWaitNewData)
+ 181   1        { 
+ 182   2          INT16U  MinWaitTime = (para.str.WtTime+1)*100;
+ 183   2          //´ËÊ±  sys.digital_led_load_cnt µÄ³õÊ¼ÖµÎªDIGITAL_LED_REFRESH_DELAY_LONG
+ 184   2          unEplased_Led_LoadCount = DIGITAL_LED_REFRESH_DELAY_LONG - sys.digital_led_load_cnt;
+ 185   2          //µÈ´ýÊ±¼ä > ×îÐÂµÈ´ýÊ±¼ä,Ö±½ÓÁÁµÆÏÔÊ¾Êý¾Ý
+ 186   2          if(unEplased_Led_LoadCount >= MinWaitTime)//(WtTime+1)*100)
+ 187   2          {
+ 188   3            sys.beWaitNewData = OFF;
+ 189   3            sys.digital_led_load_cnt = 0;
+ 190   3      //      led_flash_NO_BK = led_flash_NO;
+ 191   3          }
+ 192   2          //µÈ´ýÊ±¼ä»¹Ã»µ½×îÐ¡µÈ´ýÊ±¼ä£¬Ôò¼ÌÐøµÈ´ýµ½×îÐ¡Ê±¼äºó²ÅÁÁµÆÏÔÊ¾
+ 193   2          else
+ 194   2          {
+ 195   3      //      sys.digital_led_load_cnt = (WtTime+1)*100 - unEplased_Led_LoadCount;
+ 196   3            sys.digital_led_load_cnt = MinWaitTime - unEplased_Led_LoadCount;
+ 197   3            //±ÜÃâÖ±½ÓÁÁµÆ
+ 198   3      //      led_flash_NO_BK = led_flash_NO;
+ 199   3      //      led_flash_NO = LED_NONE;
+ 200   3          }
+ 201   2        }
+ 202   1      }
+ 203          
+ 204          /*******************************************************************************
+ 205                      ¶Ô¶à×Ö½Ú¶ÁÃüÁîÏìÓ¦
+ 206            input:   none     
+ 207            output:  none         
+ 208          *******************************************************************************/
+ 209          void ACK_Multi_Read(void)
+ 210          {
+ 211   1        UINT8 addr;
+ 212   1        UINT16 usCRC;
+ 213   1      //  UINT16 number;
+ 214   1          
+ 215   1        f_repeat   = FALSE;    // ÇåÖØ¸´½ÓÊÕµ½ÈÎÎñ±êÖ¾    
+ 216   1        addr    = para.str.address;//address[0] * 100 + address[1]*10 + address[2];    
+ 217   1      //  number  = led[0].num*100 + led[1].num*10 + led[2].num; 
+ 218   1      
+ 219   1        uart.wBuffer[0] = addr;                         //addr
+ 220   1        uart.wBuffer[1] = 0x03;                         //function code
+ 221   1              
+ 222   1        if(CurDispMode == DISPMODE_NONE)          //??0Ä£Ê½ÏÂ£¬Ó¦¸ÃÎÞ²É¼¯ÃüÁî
+ 223   1        {
+ 224   2          uart.wBuffer[2] = 0x00;                     //n byte  
+ 225   2                
+ 226   2          usCRC = CRC16(uart.wBuffer, 3);
+ 227   2          uart.wBuffer[3] = (UINT8)usCRC;
+ 228   2          uart.wBuffer[4] = (UINT8)(usCRC>>8);
+ 229   2          uart.wLen       = 5;          
+ 230   2        }
+ 231   1        else if(CurDispMode == DISPMODE_TASK)
+ 232   1        {
+ 233   2          //±¾´Î×÷ÒµµÄ×îºóÒ»×éÊý¾Ý£¬ÔòÐèÒªËùÓÐ¶¼Ê°È¡Íê±ÏºóÔÙÉÏ´«Êý¾Ý,Ô­ÒòÈçÏÂ£º
+ 234   2          //×îºóÒ»×éÊý¾Ý£¬Èç¹ûÓÐ2¸ö´ýÏÔÊ¾£¬Èç¹ûµÚÒ»¸öÏÔÊ¾Íê±Ï²¢ÇÒÒÑ¾­°´ÏÂOK¼ü£¬´ËÊ±±êÇ©ÏÔÊ¾µÚ¶þ¸ö£¬´ËÊ±ÉÏÎ»»úÑ¯ÎÊ±
+             -êÇ©ÊÇ·ñÒÑ¾­°´ÏÂOK¼ü
+ 235   2          //´ËÊ±Êµ¼ÊÒÑ¾­°´ÏÂÒ»¸öOK¼ü£¬Éè±¸»Ø´ð°´ÏÂÒ»¸ö£¬ÉÏÎ»»ú»á¼ÌÐøÑ¯ÎÊÊÇ·ñ°´ÏÂOK¼ü£¨ÒòÎªÉè±¸»¹ÓÐÏÂÒ»¸öÈÎÎñ£©£¬´Ë
+             -Ê±±êÇ©¸Ã»Ø´ð£¿£¿
+ 236   2          //µ«ÊÇÈÎÎñ¹ý³ÌÖÐ£¬ÉÏÎ»»úÑ¯ÎÊµ½±êÇ©ÒÑ¾­°´ÏÂOK¼üºó£¬»á²¹·¢ÏÂÒ»µÀÃüÁî£¬ÔÚÏÂÒ»µÀÃüÁîµ½´ï±êÇ©Ö®Ç°£¬ÊÇ²»»áÓÐ²É
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 5   
+
+             -¼¯OK¼üÃüÁîµ½´ïµÄ£¬
+ 237   2          //Òò´Ë¿ÉÒÔ¿ØÖÆ£¬µ«ÊÇ£¬×îºó2×éÎÞ·¨Èç´Ë¿ØÖÆ£¬Òò´Ë±ØÐëÒ»ÆðÉÏ´«
+ 238   2          {
+ 239   3            if(task_finished_num == 0)
+ 240   3              { // Ã»ÓÐ°´ÏÂ
+ 241   4              uart.wBuffer[2] = 0x02;                         //n byte    
+ 242   4        
+ 243   4              uart.wBuffer[3] = DISPMODE_TASK;                        
+ 244   4              uart.wBuffer[4] = 0X00;                    
+ 245   4        
+ 246   4              usCRC = CRC16(uart.wBuffer, 5);
+ 247   4              uart.wBuffer[5] = (UINT8)usCRC;
+ 248   4              uart.wBuffer[6] = (UINT8)(usCRC>>8);
+ 249   4              uart.wLen       = 7;                            
+ 250   4            }
+ 251   3            else  if(task_finished_num == 1)
+ 252   3            { // 1¸ö°´ÏÂ
+ 253   4              uart.wBuffer[2] = 0x04;                         //n byte    
+ 254   4        
+ 255   4              uart.wBuffer[3] = DISPMODE_TASK;                        
+ 256   4              uart.wBuffer[4] = task_finished_num;    
+ 257   4              uart.wBuffer[5] = task_ed_goods_numH[0];                        
+ 258   4              uart.wBuffer[6] = task_ed_goods_numL[0];    
+ 259   4                        
+ 260   4              usCRC = CRC16(uart.wBuffer, 7);
+ 261   4              uart.wBuffer[7] = (UINT8)usCRC;
+ 262   4              uart.wBuffer[8] = (UINT8)(usCRC>>8);
+ 263   4              uart.wLen       = 9;                            
+ 264   4            }
+ 265   3            else  if(task_finished_num == 2)
+ 266   3            { // 2¸ö°´ÏÂ
+ 267   4              uart.wBuffer[2] = 0x06;                         //n byte    
+ 268   4        
+ 269   4              uart.wBuffer[3] = DISPMODE_TASK;                        
+ 270   4              uart.wBuffer[4] = task_finished_num;    
+ 271   4              uart.wBuffer[5] = task_ed_goods_numH[0];                        
+ 272   4              uart.wBuffer[6] = task_ed_goods_numL[0];    
+ 273   4              uart.wBuffer[7] = task_ed_goods_numH[1];                        
+ 274   4              uart.wBuffer[8] = task_ed_goods_numL[1];    
+ 275   4                        
+ 276   4              usCRC = CRC16(uart.wBuffer, 9);
+ 277   4              uart.wBuffer[9] = (UINT8)usCRC;
+ 278   4              uart.wBuffer[10] = (UINT8)(usCRC>>8);
+ 279   4              uart.wLen       = 11;                            
+ 280   4            }
+ 281   3          }
+ 282   2        }       
+ 283   1        SendSerialByte((UINT8 *)uart.wBuffer, uart.wLen); 
+ 284   1      }
+ 285          
+ 286          void ACK_Multi_ReadTestAddr(void)
+ 287          {
+ 288   1        UINT8 addr;
+ 289   1        UINT16 usCRC;
+ 290   1      //  UINT16 number;
+ 291   1              
+ 292   1        addr    = para.str.address;//address[0] * 100 + address[1]*10 + address[2];    
+ 293   1      //  number  = led[0].num*100 + led[1].num*10 + led[2].num; 
+ 294   1      
+ 295   1        uart.wBuffer[0] = addr;                         //addr
+ 296   1        uart.wBuffer[1] = 0x03;                         //function code
+ 297   1        uart.wBuffer[2] = 0x00;                         //function code
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 6   
+
+ 298   1        usCRC = CRC16(uart.wBuffer, 3);
+ 299   1        uart.wBuffer[3] = (UINT8)usCRC;
+ 300   1        uart.wBuffer[4] = (UINT8)(usCRC>>8);
+ 301   1        uart.wLen   = 5;                            
+ 302   1        SendSerialByte((UINT8 *)uart.wBuffer, uart.wLen); 
+ 303   1      }
+ 304          /*******************************************************************************
+ 305                      ¶Ô¶à×Ö½ÚÐ´ÃüÁîÕý³£ÏìÓ¦
+ 306            input:   none     
+ 307            output:  none         
+ 308          *******************************************************************************/
+ 309          void ACK_Single_Write(void)
+ 310          {
+ 311   1        SendSerialByte((UINT8 *)uart.rBuffer, uart.rIndex); 
+ 312   1      }
+ 313          /*******************************************************************************
+ 314                      ¶Ô¶à×Ö½ÚÐ´ÃüÁî´íÎóµÄÏìÓ¦
+ 315            input:   none     
+ 316            output:  none         
+ 317          *******************************************************************************/
+ 318          void ACK_Multi_Write_RepeatError(void)
+ 319          {
+ 320   1        UINT8 addr    = para.str.address;//para.str.address;//address[0] * 100 + address[1]*10 + address[2];
+ 321   1        UINT16 usCRC;
+ 322   1      
+ 323   1        uart.wBuffer[0] = addr;                         //addr
+ 324   1        uart.wBuffer[1] = 0x90;                         //ERROR code
+ 325   1        uart.wBuffer[2] = LastSoftGetOkCount;                       
+ 326   1      
+ 327   1        usCRC = CRC16(uart.wBuffer, 3);
+ 328   1      
+ 329   1        uart.wBuffer[3] = (UINT8)usCRC;
+ 330   1        uart.wBuffer[4] = (UINT8)(usCRC>>8);
+ 331   1      
+ 332   1        uart.wLen        = 5; 
+ 333   1        SendSerialByte((UINT8 *)uart.wBuffer, uart.wLen); 
+ 334   1      }
+ 335          /*******************************************************************************
+ 336                      ¶Ô¶à×Ö½ÚÐ´ÃüÁîÕý³£ÏìÓ¦
+ 337            input:   none     
+ 338            output:  none         
+ 339          *******************************************************************************/
+ 340          void ACK_Multi_Write(void)
+ 341          {
+ 342   1        UINT8 addr    = para.str.address;//address[0] * 100 + address[1]*10 + address[2];
+ 343   1        UINT16 usCRC;
+ 344   1      
+ 345   1        uart.wBuffer[0] = addr;                         //addr
+ 346   1        uart.wBuffer[1] = 0x10;                         //function code
+ 347   1        uart.wBuffer[2] = 0x00;                         //start addr
+ 348   1        uart.wBuffer[3] = 0x00;
+ 349   1        uart.wBuffer[4] = 0x00;
+ 350   1        uart.wBuffer[5] = 0x05;
+ 351   1      
+ 352   1        usCRC = CRC16(uart.wBuffer, 6);
+ 353   1      
+ 354   1        uart.wBuffer[6] = (UINT8)usCRC;
+ 355   1        uart.wBuffer[7] = (UINT8)(usCRC>>8);
+ 356   1      
+ 357   1        uart.wLen        = 8; 
+ 358   1        SendSerialByte((UINT8 *)uart.wBuffer, uart.wLen); 
+ 359   1      }
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 7   
+
+ 360          /*******************************************************************************
+ 361            input:   none     
+ 362            output:  none         
+ 363          *******************************************************************************/
+ 364          void ResetAddr(void)
+ 365          {
+ 366   1      
+ 367   1        //ÏÔÊ¾Çå³ý,Êý¾Ý¸´Î»
+ 368   1        Display_Clear();
+ 369   1        sys_data_reset();
+ 370   1        //µØÖ·ÇåÁã
+ 371   1      //  address[0] = 0;   address[1] = 0;   address[2] = 0;
+ 372   1        para.str.address = 0;
+ 373   1        SaveParaToBlock();
+ 374   1      }
+ 375          /*******************************************************************************
+ 376            input:   none     
+ 377            output:  none         
+ 378          *******************************************************************************/
+ 379          void DiscodeProtocalV1(void)
+ 380          {
+ 381   1        UINT8 addr    = para.str.address;//address[0] * 100 + address[1]*10 + address[2];
+ 382   1        UINT16 usCRC, retCRC;
+ 383   1        //0ºÅ¹ã²¥ÃüÁîµØÖ·£¬²»Ðè»Ø¸´
+ 384   1        if(uart.rBuffer[0] == 0x00 && uart.rBuffer[1] == 0X06 && uart.rIndex == 8)  
+ 385   1        {
+ 386   2      //    p_led_rxd = 0;
+ 387   2            
+ 388   2          retCRC = CRC16    (uart.rBuffer, uart.rIndex-2);    //CRC
+ 389   2          usCRC  = (UINT16) (uart.rBuffer [uart.rIndex-2]);   //CRC_L;
+ 390   2          usCRC += (UINT16) (uart.rBuffer [uart.rIndex-1]<<8);  //CRC_H
+ 391   2          if (retCRC == usCRC)            //crcÐ£Ñé³É¹¦ 
+ 392   2          {
+ 393   3            if(uart.rBuffer[3] == 0X00)         //µØÖ·ÇåÁã
+ 394   3            {
+ 395   4              ResetAddr();
+ 396   4            }
+ 397   3            else if(uart.rBuffer[3] == 0X01)        //½ÓÊÕµØÖ·£¬²¢ÏÔÊ¾£¬½øÈëµÈ´ý°´¼üÈ·ÈÏ
+ 398   3            {
+ 399   4              if(beSettingAddr != 0X02)
+ 400   4              {       
+ 401   5                beSettingAddr = 1;
+ 402   5      //          toSettedAddr[0] = (UINT8)(uart.rBuffer[5]/100);
+ 403   5      //          toSettedAddr[1] = (UINT8)(((UINT8)(uart.rBuffer[5]%100))/10);
+ 404   5      //          toSettedAddr[2] = uart.rBuffer[5]%10;
+ 405   5      
+ 406   5                para_bk.str.address = uart.rBuffer[5];  // °ÑÉè¶¨µØÖ·´æÈë±¸·ÝÇø
+ 407   5                //ÉèÖÃ¸üÐÂÐÅÏ¢£¬ÏÔÊ¾µØÖ·Éè¶¨ÌáÊ¾
+ 408   5                led_flash_mode = LED_FLASH_MODE_ALWAYS; //³£ÁÁ
+ 409   5                led_flash_NO = LED_GREEN;       //½ÓÊÕÇ°ÁÁµÚÒ»×éµÆ£¬½ÓÊÕºóÁÁµÚ¶þ×éµÆ
+ 410   5                ClearFlg   = OFF;
+ 411   5              }
+ 412   4            }
+ 413   3            //0X10¶Î  ¹ã²¥ÏÔÊ¾
+ 414   3            //00 06 ?? 10 ## ## CRCH CRCL
+ 415   3            else if(uart.rBuffer[3] == 0X10)        //¹ã²¥ÏÔÊ¾ÃüÁî,Èç¹û## ## == 0X00 0X00£¬ÔòÏÔÊ¾µØÖ·
+ 416   3            {
+ 417   4              INT16U  usValue;
+ 418   4              usValue = ((UINT16)(uart.rBuffer[4])) *256 + (UINT16)(uart.rBuffer[5]);
+ 419   4              
+ 420   4                //ÏÔÊ¾µØÖ·
+ 421   4              if(usValue == 0X00)
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 8   
+
+ 422   4              {
+ 423   5      //          led_flash_NO_BK = LED_GREEN;          
+ 424   5              }
+ 425   4              else if(usValue == 10001)
+ 426   4              {
+ 427   5                led_flash_NO = para.str.FinishedLED;//FinishedLED;
+ 428   5                ClearFlg   = OFF;
+ 429   5              }
+ 430   4              else if(usValue == 10002)
+ 431   4              {
+ 432   5      //          led_flash_NO_BK = WtTime;
+ 433   5              }
+ 434   4              else if(usValue == 10003)
+ 435   4              {
+ 436   5      //          led_flash_NO = KeyPressLed;
+ 437   5      //          ClearFlg   = OFF;
+ 438   5              }
+ 439   4              else if(usValue == 10004)
+ 440   4              {
+ 441   5      //          led_flash_NO_BK = LED_RB;
+ 442   5              }
+ 443   4              else if(usValue == 10005)
+ 444   4              {
+ 445   5      //          led_flash_NO_BK = LED_RGB;
+ 446   5                led_flash_NO = para.str.KeyPressLed;//KeyPressLed;
+ 447   5                ClearFlg   = OFF;       
+ 448   5              }
+ 449   4      
+ 450   4              led_flash_mode = LED_FLASH_MODE_ALWAYS;
+ 451   4            }
+ 452   3            //00 06 ?? 11 ?? ?? CRCH CRCL
+ 453   3            else if(uart.rBuffer[3] == 0X11)        //¹ã²¥Çå³ý
+ 454   3            {
+ 455   4              Display_Clear();
+ 456   4              sys_data_reset();
+ 457   4            }
+ 458   3            //0X20¶Î  ¹ã²¥´æ´¢¶Î
+ 459   3            //00 06 ?? 20 ?? ## CRCH CRCL
+ 460   3            else if(uart.rBuffer[3] == 0X20)        //¹ã²¥ÉèÖÃ²ÎÊý1(±êÇ©¶ÔÓ¦¼ð»õÈÎÎñÍê³ÉºóÁÁµÆÄ£Ê½)
+ 461   3            {
+ 462   4              led_flash_mode = LED_FLASH_MODE_ALWAYS;
+ 463   4              
+ 464   4      //        FinishedLED = led_flash_NO = (UINT8)(uart.rBuffer[5]);
+ 465   4              para.str.FinishedLED = uart.rBuffer[5]; 
+ 466   4              led_flash_NO = para.str.FinishedLED;      
+ 467   4              
+ 468   4              ClearFlg  = OFF;
+ 469   4              SaveParaToBlock();
+ 470   4            }
+ 471   3            //00 06 ?? 21 ?? ## CRCH CRCL
+ 472   3            else if(uart.rBuffer[3] == 0X21)        //¹ã²¥ÉèÖÃ²ÎÊý2(Ò»¶Ô¶àÈÎÎñÊ±£¬½ø¶ÈÌõµÈ´ýÊ±¼ä)
+ 473   3            {
+ 474   4      //        WtTime = (UINT8)(uart.rBuffer[5]);      // °´ÏÂ°´¼üµÄÑÕÉ«
+ 475   4              para.str.WtTime = uart.rBuffer[5];      // °´ÏÂ°´¼üµÄÑÕÉ«
+ 476   4              
+ 477   4              led_flash_NO   = LED_GREEN ;          // ÁÁµÄÄ£Ê½
+ 478   4              ClearFlg     = OFF;
+ 479   4              led_flash_mode = LED_FLASH_MODE_1V1;      // ³£ÁÁÄ£Ê½
+ 480   4      //        led_time_refresh = 0;           // ÈÃÉÁË¸Ê±¼äµ½
+ 481   4              led_flash_status = 0;           // ÏÈÁÁ  
+ 482   4              led_flash_period = 100;           // ÉÁË¸Ê±¼ä»ù×¼
+ 483   4              SaveParaToBlock();              // ¶Ô²ÎÊý×öÅÐ¶Ï
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 9   
+
+ 484   4            }
+ 485   3            //00 06 ?? 22 ?? ## CRCH CRCL
+ 486   3            else if(uart.rBuffer[3] == 0X22)        //¹ã²¥ÉèÖÃ²ÎÊý3(¹¦ÄÜ¼üÉè¶¨)
+ 487   3            {
+ 488   4      //        led_flash_mode = LED_FLASH_MODE_ALWAYS;
+ 489   4      //        KeyPressLed = led_flash_NO = (UINT8)(uart.rBuffer[5]);
+ 490   4      //        ClearFlg  = OFF;
+ 491   4      //        SaveParaToBlock();
+ 492   4      
+ 493   4              para.str.FnDefine = uart.rBuffer[5];      // Ð´Èë²ÎÊý
+ 494   4      
+ 495   4              led_flash_NO   = LED_GREEN ;          // ÁÁµÄÄ£Ê½
+ 496   4              ClearFlg     = OFF;
+ 497   4              led_flash_mode = LED_FLASH_MODE_1V1;      // ³£ÁÁÄ£Ê½
+ 498   4      //        led_time_refresh = 0;           // ÈÃÉÁË¸Ê±¼äµ½
+ 499   4              led_flash_status = 0;           // ÏÈÁÁ  
+ 500   4              led_flash_period = 100;           // ÉÁË¸Ê±¼ä»ù×¼
+ 501   4              SaveParaToBlock();              // ¶Ô²ÎÊý×öÅÐ¶Ï
+ 502   4            }
+ 503   3            //00 06 ?? 23 ?? ## CRCH CRCL
+ 504   3            else if(uart.rBuffer[3] == 0X23)        //¹ã²¥ÉèÖÃ²ÎÊý4(ÏÔÊ¾Ä£Ê½Éè¶¨)
+ 505   3            {       
+ 506   4      //        DispMode = (UINT8)(uart.rBuffer[5]);
+ 507   4              para.str.DispMode = uart.rBuffer[5];
+ 508   4      
+ 509   4              led_flash_NO   = LED_GREEN ;          // ÁÁµÄÄ£Ê½
+ 510   4              ClearFlg     = OFF;
+ 511   4              led_flash_mode = LED_FLASH_MODE_1V1;      // ³£ÁÁÄ£Ê½
+ 512   4      //        led_time_refresh = 0;           // ÈÃÉÁË¸Ê±¼äµ½
+ 513   4              led_flash_status = 0;           // ÏÈÁÁ  
+ 514   4              led_flash_period = 100;           // ÉÁË¸Ê±¼ä»ù×¼
+ 515   4              SaveParaToBlock();              // ¶Ô²ÎÊý×öÅÐ¶Ï
+ 516   4            }
+ 517   3            //00 06 ?? 24 ?? ## CRCH CRCL
+ 518   3            else if(uart.rBuffer[3] == 0X24)        //¹ã²¥ÉèÖÃ²ÎÊý5(°´¼üÑÕÉ«Éè¶¨)
+ 519   3            {
+ 520   4              para.str.KeyPressLed = uart.rBuffer[5];    // Ð´Èë²ÎÊý
+ 521   4              led_flash_NO = para.str.KeyPressLed ;    // ÁÁµÄÄ£Ê½
+ 522   4              led_flash_mode = LED_FLASH_MODE_ALWAYS;    // ³£ÁÁÄ£Ê½
+ 523   4              ClearFlg  = OFF;
+ 524   4              SaveParaToBlock();               // ¶Ô²ÎÊý×öÅÐ¶Ï        
+ 525   4            }
+ 526   3            //00 06 ?? 0xA0 ?? ## CRCH CRCL
+ 527   3            else if(uart.rBuffer[3] == 0XA0)        //¹ã²¥ÉèÖÃ²ÎÊý4(ÏÔÊ¾Ä£Ê½Éè¶¨)///////////                
+ 528   3            {
+ 529   4              #if (MACHINETYPE == T3N3_IB_800U)
+ 530   4                          para.str.CBM7008LMD = uart.rBuffer[5];
+ 531   4                     
+ 532   4              led_flash_NO   = LED_GREEN ;          // ÁÁµÄÄ£Ê½
+ 533   4              ClearFlg     = OFF;
+ 534   4              led_flash_mode = LED_FLASH_MODE_1V1;      // ³£ÁÁÄ£Ê½
+ 535   4      //        led_time_refresh = 0;           // ÈÃÉÁË¸Ê±¼äµ½
+ 536   4              led_flash_status = 0;           // ÏÈÁÁ  
+ 537   4              led_flash_period = 100;           // ÉÁË¸Ê±¼ä»ù×¼
+ 538   4              SaveParaToBlock();              // ¶Ô²ÎÊý×öÅÐ¶Ï 
+ 539   4                     
+ 540   4                      Set_CBM7008_nLMD();             // ÉèÖÃÁéÃô¶È
+ 541   4                      #endif
+ 542   4            }
+ 543   3          }
+ 544   2      //    p_led_rxd = 1;  
+ 545   2        }
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 10  
+
+ 546   1        //ÆäËü£¬·Ç¹ã²¥ÃüÁî£¬½ÓÊÕÐÅÏ¢£¬ÐèÒª»Ø¸´
+ 547   1        else if (uart.rBuffer[0] == addr)       //µØÖ·Ð£Ñé
+ 548   1        {
+ 549   2      //    p_led_rxd = 0;  
+ 550   2          retCRC = CRC16    (uart.rBuffer, uart.rIndex-2);    //CRC
+ 551   2          usCRC  = (UINT16) (uart.rBuffer [uart.rIndex-2]);   //CRC_L;
+ 552   2          usCRC += (UINT16) (uart.rBuffer [uart.rIndex-1]<<8);  //CRC_H
+ 553   2      
+ 554   2          if (retCRC == usCRC)            //crcÐ£Ñé³É¹¦ 
+ 555   2          {
+ 556   3            switch (uart.rBuffer[1])
+ 557   3            {
+ 558   4            case READ_MULTI_BYTE://ÖÕ¶ËÉÏ´«Êý¾Ý,0X03ºÅmodbusÃüÁî£ºÍ¨ÐÅÊ±Ñ¯ÎÊÊÇ·ñÒÑ¾­°´Íê³É¼ü£¬ÉèÖÃµØÖ·Ê±Ñ¯ÎÊÊÇ·ñÒÑ¾
+             -­°´Íê³É¼ü½ÓÊÕµØÖ·
+ 559   4              {
+ 560   5                if((uart.rBuffer[4] == 0x00) && (uart.rBuffer[5] == 0x01))      //¼Ä´æÆ÷ÊýÁ¿01±íÊ¾³¢ÊÔµØÖ·ÊÇ·ñÒÑ¾­Éè¶¨µÄ
+             -ÃüÁî
+ 561   5                {
+ 562   6                  ACK_Multi_ReadTestAddr();                   //µØÖ·Éè¶¨ÊÇ·ñ³É¹¦²âÊÔ
+ 563   6                }
+ 564   5                else if ((uart.rBuffer[4] == 0x00) && (uart.rBuffer[5] == 0x03))  //¼Ä´æÆ÷ÊýÁ¿03±íÊ¾¶ÁÈ¡ÊÇ·ñ°´OK¼üµÄÃü
+             -Áî
+ 565   5                {                       
+ 566   6                  ACK_Multi_Read();                       //Ó¦´ðModbus 0x03ºÅ²É¼¯°´Å¥ÃüÁî
+ 567   6                }
+ 568   5                break;
+ 569   5              }
+ 570   4            case WRITE_SINGLE_BYTE: //¿ØÖÆÆ÷ÏÂ´«Êý¾Ý,0X06ºÅmodbusÃüÁî£ºËø¶¨½âËø±êÇ©
+ 571   4              {
+ 572   5                if(uart.rIndex == 0X08)           //ËùÓÐ06ºÅÃüÁî¶¼ÊÇ8×Ö½Ú³¤¶È
+ 573   5                {
+ 574   6                  ACK_Single_Write();
+ 575   6                  //Çå³ýÈ«²¿(Çå³ýÏÔÊ¾ÐÅÏ¢¡¢µÆ¡¢·äÃùÆ÷)£¬Çå³ýOKÐÅÏ¢+É¨ÃèÇ¹ÐÅÏ¢+µÆËþÐÅÏ¢
+ 576   6                  if(uart.rBuffer[3] == 0X00)
+ 577   6                  {
+ 578   7                    Display_Clear();
+ 579   7                    sys_data_reset();
+ 580   7                    CurDispMode = DISPMODE_NONE;
+ 581   7                  }
+ 582   6                  //Çå³ýÏÔÊ¾²¿·Ö(Çå³ýÏÔÊ¾ÐÅÏ¢¡¢µÆ¡¢·äÃùÆ÷)£¬²»°üÀ¨£¬Çå³ýOKÐÅÏ¢+É¨ÃèÇ¹ÐÅÏ¢+µÆËþÐÅÏ¢
+ 583   6                  else if(uart.rBuffer[3] == 0X01 || uart.rBuffer[3] == 0X02)
+ 584   6                  {
+ 585   7                    Display_Clear();
+ 586   7                    sys_data_reset();
+ 587   7                    CurDispMode = DISPMODE_NONE;
+ 588   7                  }
+ 589   6                  else if(uart.rBuffer[3] == 0x20)    //Ëø¶¨½âËø
+ 590   6                  {
+ 591   7                    if(uart.rBuffer[5] == 0x00)     //½âËø
+ 592   7                    {
+ 593   8                      SystemLocked = OFF;
+ 594   8                    }
+ 595   7                    else if(uart.rBuffer[5] == 0x01)  //Ëø¶¨
+ 596   7                    {
+ 597   8                      SystemLocked = ON;
+ 598   8                    }
+ 599   7                  }
+ 600   6                  else if(uart.rBuffer[3] == 0x30)    //ÉÏÎ»»úÊÕµ½²É¼¯°´Å¥ÃüÁî´ø»ØÀ´µÄn¸öOKÃüÁîºó£¬»Ø´«¸øÉè±¸£¬¸æÖªÉè±¸Ò
+             -Ñ¾­½ÓÊÕµ½ÁËn¸öOKÐÅÏ¢(Ö»ÓÐÔÚÉÏÎ»»úÊÕµ½1¸öOKÐÅÏ¢£¬µ«ÊÇÉè±¸ÖÐ»¹ÓÐÒ»¸öÈÎÎñÐÅÏ¢Î´»Ø´«Ê±£¬²Å»á·¢ËÍ´ËÃüÁî)
+ 601   6                  {
+ 602   7                    //2014.3.31 ·¢ÏÖbug£¬ÉÏÎ»»úÇý¶¯ÐÞ¸ÄÎª²»Í£³¢ÊÔ·¢ËÍ×îºó2¸öÍê³ÉµÄÈ·ÈÏÃüÁî£¬È·±£
+ 603   7                    //ÏÂÊöÇé¿öÏÂÊ±²Å¿ÉÒÔÇå³ý£¬±ÜÃâÈ·ÈÏÐÅºÅÊ§°ÜÇé¿öÏÂµÄÏµÍ³´íÎó
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 11  
+
+ 604   7                    if(uart.rBuffer[5] == 0x01 && ((task_finished_num == 1 && task_unfinish_num == 1) || (task_finished
+             -_num == 2 && task_unfinish_num == 0)))      //1¸öOKÐÅÏ¢
+ 605   7                    {
+ 606   8                      task_finished_num--;
+ 607   8                      if(task_finished_num == 1)    //Ô­ÏÈÓÐ2¸öÒÑ¾­Íê³ÉµÄÈÎÎñ£¬ÔòºóÍùÇ°Å²£¬ÒòÎªÒÑ¾­Ã÷È·ÊÕµ½Ç°Ò»¸ö±»ÉÏÎ»»ú½
+             -ÓÊÕµÄÐÅÏ¢
+ 608   8                      {
+ 609   9                        task_finished_NO[0]   = task_finished_NO[1];
+ 610   9                        task_ed_goods_numH[0]   = task_ed_goods_numH[1];
+ 611   9                        task_ed_goods_numL[0]   = task_ed_goods_numL[1];
+ 612   9                      }
+ 613   8                    }
+ 614   7                  }
+ 615   6                }
+ 616   5                break;
+ 617   5              }
+ 618   4            case WRITE_MULTI_BYTE:                            //ÖÕ¶ËÏÂ´«Êý¾Ý
+ 619   4              {
+ 620   5                //ÅäÖÃ×´Ì¬ÊÕµ½0X10ºÅÃüÁî,Ôò×Ô¶¯ÍË³öÅäÖÃÇÒ²»±£´æ
+ 621   5      //          if(ucConfig == ON) 
+ 622   5      //          {
+ 623   5      //            usCountCfg = 0;
+ 624   5      //          }
+ 625   5                //¿ªÊ¼´¦ÀíÃüÁî£¬°üÀ¨Êý¾ÝÔÝ´æ½ÓÊÕ¡¢¸÷ÖÖÏìÓ¦µÈ
+ 626   5                if(uart.rBuffer[7]==DISPMODE_NONE && uart.rBuffer[6] == 0X0A)
+ 627   5                {
+ 628   6                  ACK_Multi_Write();  
+ 629   6                  Display_Clear();
+ 630   6                  sys_data_reset();
+ 631   6                }
+ 632   5      //          else if(uart.rBuffer[5] == 0X00 && uart.rBuffer[7] ==DISPMODE_TASK && uart.rBuffer[6] == 0X0A)
+ 633   5                else if( (uart.rBuffer[5] == 0X00 && uart.rBuffer[6] == 0X0A && uart.rBuffer[7] == DISPMODE_TASK)     
+             - // ÎÞÅú´ÎºÅÃüÁî
+ 634   5                       ||(uart.rBuffer[5] == 0X01 && uart.rBuffer[6] == uart.rIndex-9 && uart.rBuffer[7] ==DISPMODE_T
+             -ASK && (uart.rBuffer[6]-uart.rBuffer[11]>=8)) )   // ÓÐÅú´ÎºÅÃüÁî
+ 635   5                {
+ 636   6                  //ÏÂ·¢±¾´ÎÏÔÊ¾Êý¾ÝÇ°£¬ÉÏÎ»»ú½ÓÊÕµ½µÄ±¾±êÇ©²É¼¯µ½µÄÊý¾Ý×éÊý£¬Í¨¹ý´ËÊý¾ÝÀ´È·¶¨·¢´ËÊý¾ÝÖ®Ç°ÒÑ¾­±»ÉÏÎ»»ú
+             -²É¼¯µãµÄOK¼üµÄ´ÎÊý£¬ÓÉ´Ë¿ØÖÆtask_finished_num
+ 637   6                  LastSoftGetOkCount = (uart.rBuffer[9]>>4)&0X0F; 
+ 638   6                  //´Ë´¦¾ÀÕýµ±Íø¹ØÒÑ¾­½«ÃüÁîÏÂ´«µ½±¾Éè±¸£¬²¢ÇÒ±¾Éè±¸ÒÑ¾­½«Êý¾Ý»Ø´«£¬µ«ÊÇ»Ø´«¹ý³ÌÖÐÉÏÎ»»úÓëÍø¹ØÖ®¼äµÄÍ¨
+             -ÐÅ³öÎÊÌâÊ±
+ 639   6                  //²»ÖØÐÂ½ÓÊÕÐÂÊý¾Ý£¨Í¨¹ý±¾±êÇ©±¾´Î×÷ÒµÊ£ÓàÎ´²Ù×÷¸öÊýÓëµ±Ç°ÃüÁîÄ£Ê½µÄÓëÀ´ÅÐ¶¨,ÁíÍâÈç¹ûLastSoftGetOkCo
+             -unt==0µÄÇé¿ö£¬ÔòÔÊÐí½ÓÊÕ£©
+ 640   6                  //2014.3.31·¢ÏÖbug£¬Èç¹ûÊÇ0¸öLastSoftGetOkCount£¬»áÖØ¸´½ÓÊÕ
+ 641   6                  //1¶Ô¶àÈÎÎñÊ±£¬»á³öÏÖÏÔÊ¾¡¢ÅÄÃð¡¢½ø¶ÈÌõ¡¢ÏÔÊ¾ÏàÍ¬µÄµÚÒ»¸ö¡¢ÅÄÃð¡¢½ø¶ÈÌõ......£¨Éè±¸Í¨ÐÅ¹ÊÕÏÊ±£©
+ 642   6                  //½â¾öÍ¾¾¶£¬ÔÝÊ±¿ÉÍ¨¹ýÉÏÎ»Çý¶¯³ÌÐò·¢ÏÖ±¾±êÇ©±¾´ÎÈÎÎñÍê³Éºó£¬·¢ËÍclearÃüÁî£¬±¾³ÌÐò¼ÇÏÂclear×´Ì¬ÓëÏÔÊ¾
+             -×´Ì¬£¬
+ 643   6                  //Èç¹ûclear×´Ì¬Ê±£¬LastSoftGetOkCount==0Ê±£¬ÅÐ¶ÏÓÐÃ»ÓÐÈÎÎñ½ÓÊÕÏÂÀ´£¬Èç¹ûÓÐÈÎÎñ½ÓÊÕÏÂÀ´£¬Ôò·¢ËÍACK_Mu
+             -lti_Write_RepeatError
+ 644   6                  //·ñÔò£¬´¦Àí
+ 645   6                  //ÈÎÎñÇý¶¯ÐÍÐÅÏ¢
+ 646   6      
+ 647   6      
+ 648   6                  if( (CurDispMode == DISPMODE_TASK)&&(f_repeat == TRUE) )
+ 649   6                  {
+ 650   7                    ACK_Multi_Write_RepeatError();    //»ØÖØ¸´ÊÕµ½ÏàÍ¬ÃüÁîµÄÏìÓ¦
+ 651   7                    break;                                                                
+ 652   7                  }
+ 653   6                  ACK_Multi_Write();
+ 654   6                  //ÒÑ¾­ÐÞ¸ÄÎª£¨¼´µ±Ç°ÈôÓÐÎ´´¦ÀíÍêµÄÈÎÎñ£¬À´ÁËÐÂÈÎÎñ£¬Ôò½ÓÊÕÏÔÊ¾ÐÂµÄ£¬Ô­ÏÈ²»½ÓÊÕ£©
+ 655   6                  Commu_Task_Process(); 
+ 656   6                  f_repeat   = TRUE;       // ÖÃÒÑÊÕµ½ÈÎÎñ±êÖ¾£¬·ÀÖ¹ÖØ¸´·¢ËÍ
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 12  
+
+ 657   6                }
+ 658   5      
+ 659   5                CurDispMode = uart.rBuffer[7];
+ 660   5                break;
+ 661   5              }
+ 662   4            default:
+ 663   4              {
+ 664   5                break;
+ 665   5              }
+ 666   4            }
+ 667   3          }
+ 668   2      //    else
+ 669   2      //    {
+ 670   2      //    }
+ 671   2      //    p_led_rxd = 1;
+ 672   2        }
+ 673   1      //  uart.rIndex = 0;
+ 674   1      //  uart.rFlag  = OFF;
+ 675   1      }
+ 676          
+ 677          /*******************************************************************************
+ 678                      ´¦ÀíMODBUS×ÜÕ¾ÏÂ·¢µÄÃüÁî
+ 679          Ã¿×éÃüÁî¹²14¸ö×Ö½Ú£»
+ 680          BYTE_ADD,BYTE_HEAD,BYTE1,---> BYTE10 , CRC_H , CRC_L
+ 681          
+ 682          BYTE_ADD  : ÖÕ¶ËµØÖ·
+ 683          BYTE_HEAD :  ÏÂ´«ÃüÁîÂë
+ 684          BYTE1   :  ÏÂ´«Ö¸ÁîºÅ
+ 685          BYTE2   :  LEDÖ¸Ê¾µÆÏÔÊ¾·½Ê½
+ 686          BYTE3   :  ±¾´ÎÏÂ·¢µÄ"µç×Ó±êÇ©"¸öÊý
+ 687          BYTE4   :  Ö÷»úÖÐµÄ´ËµØÖ·Ê£Óà"µç×Ó±êÇ©"¸öÊý
+ 688          BYTE5-BYTE7 :   µÚÒ»¸ö"µç×Ó±êÇ©"ÄÚÈÝ
+ 689          BYTE8-BYTE10:   µÚ¶þ¸ö"µç×Ó±êÇ©"ÄÚÈÝ  
+ 690          BYTE11    : CRC_H
+ 691          BYTE12    : CRC_L
+ 692          
+ 693          ÏÂ´«ÃüÁîºÅ:
+ 694          00-   Çå³ýÉè±¸µÄËùÓÐÏÔÊ¾ÐÅÏ¢¼´±êÇ©½«²»¹¤×÷;
+ 695          01-   µç×Ó±êÇ©ÓëÉÌÆ·ÌõÂë½øÐÐ°ó¶¨Ä£Ê½£»´ËÊ±3~10Î»Êý¾ÝÎÞÐ§£¬Êý¾ÝÕì³¤¶È2×Ö½Ú
+ 696          02-    Ö¸Ê¾µÆÏÔÊ¾·½Ê½µ¥¶À¿ØÖÆ£¬´ËÊ±3~10Î»Êý¾ÝÎÞÐ§£¬Êý¾ÝÕì³¤¶È2×Ö½Ú
+ 697          03-   ÏÂ·¢ÏÔÊ¾Êý¾ÝÒÔ¼°Ö¸Ê¾µÆµÄÐÅÏ¢£¬¼´Ê°È¡¡¢ÉÏ»õ¡¢ÅÌµã×÷Òµ£»
+ 698                   Êý¾ÝÕì³¤¶È7×Ö½Ú»òÕß10×Ö½Ú
+ 699          *******************************************************************************/
+ 700           void Cmd_Process(void)
+ 701          {
+ 702   1        //Êý¾Ý°ü³¤¶È²»¹»,²»×öModbusÓ¦´ð
+ 703   1        
+ 704   1        if (uart.rIndex < ONE_CMD_MIN_LENGTH)
+ 705   1          return;       
+ 706   1          //ÏÈ¿´µØÖ·¡¢CRCÐ£Ñé¡¢Êý¾Ý³¤¶ÈµÈÅÐ¶Ï
+ 707   1          //ÔÙ¸ù¾ÝµÚ¶þ¸ö×Ö½ÚµÄ·¶Î§ÅÐ¶ÏÊÇ²ÉÓÃÐÂÐ­Òé½âÎö»¹ÊÇ¾ÉÐ­Òé½âÎö
+ 708   1          //µØÖ·ÓëCRCÊý¾ÝÐ£Ñé,ÏÂ´«Ö¸Áî´æ´¢,MODBUSÓ¦´ð,CRC_Checkº¯ÊýÖÐ°üº¬µØÖ·Éè¶¨ÃüÁî
+ 709   1          DiscodeProtocalV1();
+ 710   1          //  SendSerialByte((UINT8 *)uart.rBuffer, uart.rIndex);
+ 711   1      }
+ 712          /*******************************************************************************
+ 713                          END         
+ 714          *******************************************************************************/
+ 715          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/16/2016 09:00:52 PAGE 13  
+
+   CODE SIZE        =   1967    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      16
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

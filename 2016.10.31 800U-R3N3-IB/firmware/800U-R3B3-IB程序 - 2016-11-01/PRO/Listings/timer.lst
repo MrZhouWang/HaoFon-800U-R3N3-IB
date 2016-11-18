@@ -1,0 +1,181 @@
+C51 COMPILER V9.52.0.0   TIMER                                                             11/17/2016 16:55:13 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN ..\OUT\timer.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\SRC\timer.c ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE INCDIR(.
+                    -.\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\timer.lst) TABS(2) OBJECT(..\OUT\timer.obj)
+
+line level    source
+
+   1          #include "include.h"
+   2          //unsigned int test_count=0;
+   3          //////////////////////////////////////////////////////////////////////////////////
+   4          //// 功能描述 : 定时器0初始化
+   5          //// 输入参数 : 
+   6          //// 返回参数 : 
+   7          //// 说明     :  
+   8          //////////////////////////////////////////////////////////////////////////////////
+   9          void Timer0_Init(void)       // 30us
+  10          {
+  11   1        TR0 = 1;          //Timer0启动,即TCON=0x10;
+  12   1        ET0 = 1;          //T0溢出中断允许
+  13   1        TH0 = (255-8);    //10US 
+  14   1        TMOD = 2;         //定时器0 8bit自动重装载
+  15   1        CKCON |= 0x01;    //4分频率  12.5/4
+  16   1        EA =0;
+  17   1        EA =0;
+  18   1        //PT0 = 1;         //Timer0 Set High Interrupt Priority Level
+  19   1      }
+  20          
+  21          //////////////////////////////////////////////////////////////////////////////////
+  22          //// 功能描述 : 定时器1初始化
+  23          //// 输入参数 : 
+  24          //// 返回参数 : 
+  25          //// 说明     : 作为UART的始终基准 工作在模式二 8 wei 自动重装
+  26          //////////////////////////////////////////////////////////////////////////////////
+  27          void Timer1_Init(void)       
+  28          {
+  29   1        TR1 = 1;          //Timer1启动,即TCON=0x40;
+  30   1        ET1 = 0;          //T1溢出中断禁止
+  31   1        TMOD |=0x20;      //定时器1 8bit自动重装载
+  32   1        
+  33   1        CKCON &= ~0x10;   //Timer1时钟选择为System时钟
+  34   1        TH1 = 0XD8;
+  35   1        
+  36   1        
+  37   1      }
+  38          
+  39          //////////////////////////////////////////////////////////////////////////////////
+  40          //// 功能描述 : 定时器0中断入口函数
+  41          //// 输入参数 : 
+  42          //// 返回参数 : 
+  43          //// 说明     : 1ms采集一次 连续采样20此大于基准电压，表示有触发
+  44          //////////////////////////////////////////////////////////////////////////////////
+  45          void Timer0(void) interrupt 1          //10us
+  46          {
+  47   1        count++;                             //对10us计数       
+  48   1      
+  49   1        if(LedDelayCnt>0)                    //按键关断计时
+  50   1           LedDelayCnt--;
+  51   1        
+  52   1      
+  53   1           if(ADC_BaseErrNum>0)                 
+  54   1           {
+C51 COMPILER V9.52.0.0   TIMER                                                             11/17/2016 16:55:13 PAGE 2   
+
+  55   2              ADC_BaseErrNum--;
+  56   2           }
+  57   1      
+  58   1        
+  59   1      /********************发射处理****************************************************/  
+  60   1      
+  61   1        if(count>FSLEDONTIME)                 //持续发射
+  62   1        { 
+  63   2            
+  64   2            pEMILEDCTL = ON;                  // 发射管打开
+  65   2            count=0;
+  66   2            valid_ok = TRUE;
+  67   2        }
+  68   1        else
+  69   1        {
+  70   2           if(valid_ok == TRUE)
+  71   2           {
+  72   3            // LED_B_ON;
+  73   3             sampDat = ADC_Samp();           // 采集高端数据  
+  74   3            // LED_B_OFF;    
+  75   3             f_prossout = TRUE;               //发射一次完成
+  76   3             pEMILEDCTL = OFF;                 // 发射管关闭
+  77   3             
+  78   3            
+  79   3          
+  80   3           }
+  81   2           pEMILEDCTL = OFF;                   // 发射管关闭
+  82   2           valid_ok = FALSE;
+  83   2        }
+  84   1      
+  85   1        }
+  86          //////////////////////////////////////////////////////////////////////////////////
+  87          //// 功能描述 : 定时器2初始化
+  88          //// 输入参数 : 
+  89          //// 返回参数 : 
+  90          //// 说明     : in 16-bit reload mode   2ms
+  91          //////////////////////////////////////////////////////////////////////////////////
+  92          void Timer2_Init(void)       
+  93          {
+  94   1         TR2 = 1;         //Timer2 Enable
+  95   1         T2XCLK = 0;      //Timer2 external clock selection is the system clock divided by 12
+  96   1         TMR2RLL = 0X58;  //Timer2 Reload Register Low Byte
+  97   1         TMR2RLH = 0xF8;  //Timer2 Reload Register High Byte  
+  98   1        
+  99   1         TMR2L = TMR2RLL; //Timer2 Low Byte
+ 100   1         TMR2H = TMR2RLH; //Timer2 High Byte
+ 101   1         ET2 = 1;         //Enable Timer2 Interrupt
+ 102   1         PT2 = 1;         //Timer2 Set High Interrupt Priority Level
+ 103   1      }
+ 104          //////////////////////////////////////////////////////////////////////////////////
+ 105          //// 功能描述 : 定时器2中断入口函数
+ 106          //// 输入参数 : 
+ 107          //// 返回参数 : 
+ 108          //// 说明     : 2ms
+ 109          //////////////////////////////////////////////////////////////////////////////////
+ 110          void Timer2(void) interrupt 5        //2ms
+ 111          {
+ 112   1      
+ 113   1      
+ 114   1        
+ 115   1            //递减计算器，自减1
+ 116   1          if (sys.digital_led_load_cnt != 0)
+C51 COMPILER V9.52.0.0   TIMER                                                             11/17/2016 16:55:13 PAGE 3   
+
+ 117   1              sys.digital_led_load_cnt--;    
+ 118   1          
+ 119   1          //递减计算器，自减1
+ 120   1      //    if (sys.count != 0)
+ 121   1      //        sys.count--;
+ 122   1      
+ 123   1          //递减计算器，自减1
+ 124   1          if (sys.led_flash_count != 0)
+ 125   1              sys.led_flash_count--;
+ 126   1        
+ 127   1        
+ 128   1          if (uart.rIndex != 0)          //串口1-485缓冲区有数据  
+ 129   1          {
+ 130   2              
+ 131   2              if (uart.rTimer-- == 0) 
+ 132   2              {
+ 133   3                 uart.rFlag  = ON;
+ 134   3              }
+ 135   2             TR0 = 0;
+ 136   2          }
+ 137   1          else 
+ 138   1             TR0 = 1;
+ 139   1          
+ 140   1          
+ 141   1          
+ 142   1          TF2H = 0; //Timer2 software clear
+ 143   1      }
+ 144          //////////////////////////////////////////////////////////////////////////////////
+ 145          //// 功能描述 : 定时器0开启
+ 146          //// 输入参数 : 
+ 147          //// 返回参数 : 
+ 148          //// 说明     :  
+ 149          //////////////////////////////////////////////////////////////////////////////////
+ 150          void Interrupt_Init (void)
+ 151          {
+ 152   1        EA = 1; //中断允许总控制位
+ 153   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    263    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,197 @@
+C51 COMPILER V9.52.0.0   UART                                                              11/14/2016 12:11:11 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN ..\UV4\uart.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\src\uart.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRI
+                    -NT(.\uart.lst) TABS(2) OBJECT(..\UV4\uart.obj)
+
+line level    source
+
+   1          
+   2          #define AP_UART_GLOBALS 
+   3          #include "extern_symbol.h" 
+   4          
+   5          //volatile OS_UART xdata uart;
+   6          
+   7          /***************************************************
+   8              T1定时器初始化
+   9                                  7     6     5     4     3     2     1     0     Reset Value
+  10          sfr SCON = 0x98; //Serial Control         SM0/FE SM1   SM2   REN   TB8   RB8    TI    RI    0000,0000
+  11          SM0 SM1:
+  12           0   0         同步移位寄存器   fosc/12
+  13           0   1       10位异步收发         由定时器控制
+  14           1   0         11位异步收发     fosc/32或fosc/64
+  15           1   1         11位异步收发         由定时器控制
+  16          P = PSW.0      P=1奇   P=0偶
+  17          STC15W408AS 没有T1定时器
+  18          ***************************************************/
+  19          
+  20          void InitT1(void)
+  21          {
+  22   1        SCON = 0xd0;              //串行口工作模式3选择
+  23   1        PCON  &= 0x7f;                  //SOMD =0，不加倍
+  24   1        //串口1切换到P3.0和P3.1
+  25   1        AUXR1 = 0x40;           //设置串口1在P3.6和 P3.7中
+  26   1      
+  27   1        AUXR &= ~(1<<4);  //Timer stop
+  28   1        AUXR |= 0x01;   //S1 BRT Use Timer2;
+  29   1        AUXR &= ~(1<<3);  //Timer2 set As Timer
+  30   1        AUXR |=  (1<<2);  //Timer2 set as 1T mode
+  31   1        TH2 = (INT8U)((65536-(11059200/4/38400))>>8);    //设定定时初值
+  32   1        TL2 = (INT8U)(65536-(11059200/4/38400));      //设定定时初值
+  33   1        IE2  &= ~(1<<2);  //禁止中断
+  34   1      //  AUXR &= ~(1<<3);  //定时  Timer2 set As Timer
+  35   1        AUXR |=  (1<<4);  //Timer run enable
+  36   1        ES   = 1;               //Enabled serial port interrrup 
+  37   1      }
+  38          
+  39          /*******************************************************************************
+  40                        串口初始化
+  41            input :     none
+  42            default:
+  43                data bits:  8
+  44                start bits: 1
+  45                stop bits:  1
+  46                parity:     NONE          
+  47          *******************************************************************************/
+  48          void UART_Init(void)
+  49          {
+  50   1        InitT1();
+  51   1        uart.rIndex = 0;
+  52   1        uart.rFlag  = OFF;
+  53   1        uart.rTimer = 0;
+  54   1        
+C51 COMPILER V9.52.0.0   UART                                                              11/14/2016 12:11:11 PAGE 2   
+
+  55   1        //UART 收发指示灯IO配置
+  56   1      //  p_led_txd = 1;
+  57   1      //  p_led_rxd = 1;  
+  58   1      }
+  59          
+  60          
+  61          /*******************************************************************************
+  62                        串口初始化1
+  63            input :     none
+  64            default:
+  65                data bits:  8
+  66                start bits: 1
+  67                stop bits:  1
+  68                parity:     NONE  
+  69                      
+  70          *******************************************************************************/
+  71          #if 0
+              void UART1_Init(void)
+              { 
+                SCON = 0x50;              //串行口工作模式1选择
+                PCON  &= 0x7f;                  //SOMD =0，不加倍
+                //串口1切换到P3.0和P3.1
+                AUXR1 &= 0x3F;          //bit7=0，bit6=0
+                  
+                AUXR &= ~(1<<4);  //Timer stop
+                AUXR |= 0x01;   //S1 BRT Use Timer2;
+                AUXR &= ~(1<<3);  //Timer2 set As Timer
+                AUXR |=  (1<<2);  //Timer2 set as 1T mode
+                TH2 = (INT8U)((65536-(11059200/4/38400))>>8);    //设定定时初值
+                TL2 = (INT8U)(65536-(11059200/4/38400));      //设定定时初值
+                IE2  &= ~(1<<2);  //禁止中断
+                AUXR &= ~(1<<3);  //定时  Timer2 set As Timer
+                AUXR |=  (1<<4);  //Timer run enable
+              }
+              #endif
+  90          /*******************************************************************************
+  91                       串口中断函数
+  92            input:   none     
+  93            output:  none         
+  94          *******************************************************************************/
+  95          #define RCV_OVER_TIMER  2
+  96          
+  97          void SCON_int (void) interrupt 4
+  98          {
+  99   1      
+ 100   1        if (RI)
+ 101   1        {
+ 102   2          RI = 0;
+ 103   2      
+ 104   2          if ( (uart.rIndex < UART_BUF_LEN)&&(uart.rFlag == OFF) )
+ 105   2          {
+ 106   3            uart.rBuffer[uart.rIndex++] = SBUF; 
+ 107   3            uart.rTimer = RCV_OVER_TIMER;
+ 108   3          }
+ 109   2          
+ 110   2        }
+ 111   1      //  p_Test = 1;
+ 112   1      }
+ 113          /***********************************************
+ 114                  串口发送程序
+ 115          input :     *Ram    
+ 116                      len     
+C51 COMPILER V9.52.0.0   UART                                                              11/14/2016 12:11:11 PAGE 3   
+
+ 117          output :    NONE
+ 118          ***********************************************/
+ 119          #if 0
+              void SendSerialByte1(UINT8 *Ram, UINT16 len)
+              { 
+              
+                  for(;len>0;len--)
+                  {
+              
+                  TI = 0;
+                      SBUF = *Ram;           
+                      while(!TI){;}             
+                      TI = 0;
+                      Ram++;
+                  }
+              }
+              #endif
+ 134          /***********************************************
+ 135                  串口发送程序
+ 136          input :     *Ram    
+ 137                      len     
+ 138          output :    NONE
+ 139          ***********************************************/
+ 140          void SendSerialByte(UINT8 *Ram, UINT16 len)
+ 141          { 
+ 142   1      //  p_led_txd = 0;
+ 143   1        p_m485_ctrl = 1;
+ 144   1          for(;len>0;len--)
+ 145   1          {
+ 146   2          ACC = *Ram;
+ 147   2          if(P == 0)
+ 148   2          {
+ 149   3            TB8 = 0;
+ 150   3          }
+ 151   2          else
+ 152   2          {
+ 153   3            TB8 =1;
+ 154   3          }
+ 155   2      
+ 156   2              SBUF = *Ram;           
+ 157   2              while(!TI){;}             
+ 158   2              TI = 0;
+ 159   2              Ram++;
+ 160   2          }
+ 161   1        p_m485_ctrl = 0;
+ 162   1      //  p_led_txd = 1;
+ 163   1      
+ 164   1      }
+ 165          /*******************************************************************************
+ 166                          END         
+ 167          *******************************************************************************/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    171    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.52.0.0   UART                                                              11/14/2016 12:11:11 PAGE 4   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

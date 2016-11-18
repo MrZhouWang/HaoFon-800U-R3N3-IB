@@ -1,0 +1,341 @@
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE CBM7008
+OBJECT MODULE PLACED IN ..\UV4\CBM7008.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\src\CBM7008.C OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND 
+                    -PRINT(.\CBM7008.lst) TABS(2) OBJECT(..\UV4\CBM7008.obj)
+
+line level    source
+
+   1          //IIC总线模拟实现文件
+   2          
+   3          #include "extern_symbol.h"
+   4          #if(MACHINETYPE == T3N3_IB_800U)
+   5            #include "CBM7008.H"     
+   6          
+   7          /************************************************************************
+   8          ** 功能描述：循环延时　Delay1us*tim 
+   9          ************************************************************************/
+  10          void delay_us(INT16U us)
+  11          {
+  12   1       //   while (--us > 1);
+  13   1      //    while (--us > 10);
+  14   1      //  while (--us > 0);
+  15   1      //  INT16U  j;
+  16   1        for (; us > 0; us--)
+  17   1      //  { for(j=0;j<8;j++);    }
+  18   1        { _nop_();  _nop_(); _nop_();  }
+  19   1      }
+  20          
+  21          /************************************************************************
+  22          ** 功能描述：START Data Transfer
+  23            A high-to-low transition of SDA with SCL high is a start condition
+  24          which must precede any other command
+  25          
+  26          * Not Busy Stutas: scl = 1; scl = 1;
+  27          ************************************************************************/
+  28          
+  29          void iic_start(void)
+  30          {
+  31   1          SETSDA();       //需在SCL之前设定
+  32   1          delay_us(5);    //延时至少4.7us
+  33   1          SETSCL();       //硬件进入SDA检测状态
+  34   1          delay_us(5);    //延时至少4.7us
+  35   1          RESETSDA();     //SDA由1->0,产生开始信号
+  36   1          delay_us(5);    //延时至少4us
+  37   1          RESETSCL();     //SCL变为无效
+  38   1      }
+  39          /************************************************************************
+  40          ** 功能描述： Stop Data Transfer
+  41            A low-to-high transition of SDA with SCL high is a stop condition.
+  42          
+  43          * Not Busy Stutas: scl = 1; scl = 1;
+  44          ************************************************************************/
+  45          
+  46          void iic_stop(void)
+  47          {
+  48   1      //    RESETSCL();
+  49   1      //  delay_us(5);    //至少延时4us
+  50   1        RESETSDA();     //在SCL之前拉低
+  51   1        delay_us(5);    //至少延时4us
+  52   1          SETSCL();       //硬件进入SDA检测状态
+  53   1          delay_us(5);    //至少延时4us
+  54   1          SETSDA();       //SDA由0->1,产生结束信号
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 2   
+
+  55   1          delay_us(5);    //延时至少4.7us
+  56   1      }
+  57          
+  58          
+  59          /************************************************************************
+  60          ** 功能描述：写IIC总线写1个字节 
+  61          ** 输入参数: 8位数据dat                
+  62          ** 输出参数: 无
+  63          ** 时序: SCL上升沿传送数据,数据改变必须在SCL低电平时
+  64               SCL 9个上升沿 其中8个为传送数据, 第9个为检测应答信号用        
+  65          ** 检测应答信号,并作10ms的超时保护
+  66          ** data change at scl = 0;
+  67          ************************************************************************/
+  68          
+  69          INT8U iic_write_byte(INT8U dat)
+  70          {
+  71   1        INT8U i;
+  72   1        INT8U flg;
+  73   1      
+  74   1        for(i = 8; i > 0; i--)      // 这样写就会用djnz指令
+  75   1        {       
+  76   2          RESETSCL(); delay_us(2);
+  77   2          
+  78   2          //编译器漏洞：加括号，确保 & 运算在 == 之前
+  79   2          if((dat  & 0x80) == 0x80) 
+  80   2            { SETSDA(); }
+  81   2          else{ RESETSDA(); }
+  82   2          dat <<= 1;delay_us(3);
+  83   2          SETSCL(); delay_us(5);  
+  84   2        }
+  85   1        
+  86   1        //检测应答信号
+  87   1        //ACKNOWLEDGE：写数据时，应答信号由24LCXX发出 
+  88   1        RESETSCL();delay_us(4);
+  89   1        SETSDA();  delay_us(1);
+  90   1        SETSCL();  delay_us(5);
+  91   1        
+  92   1        //While the SCL is high,then ADDRESS OR ACKNOWLEDGE VALID
+  93   1        flg = FALSE;
+  94   1        for(i = 200; i > 0; i--)  //这样写就会用djnz指令
+  95   1        {           
+  96   2          if(READSDABIT() == 0)
+  97   2          {flg = TRUE; break;}      //Acknowledge Succ
+  98   2          else{ delay_us(250); }      //250us
+  99   2        }
+ 100   1        
+ 101   1        RESETSCL();delay_us(3);
+ 102   1        SETSDA();//Delay1us(2);
+ 103   1      
+ 104   1        return(flg);            //Acknowledge Err
+ 105   1      }
+ 106          /************************************************************************
+ 107          ** 功能描述：从IIC总线读取1个字节 
+ 108          ** 输入参数: ack = 1 则回发应答位0，否则发应答位1                
+ 109          ** 输出参数: 返回8位数据
+ 110          ** 时序: SCL高电平输出数据,数据改变必须在SCL低电平时
+ 111               SCL 8个下降沿       
+ 112          ** data change at scl = 0;;
+ 113          ************************************************************************/
+ 114          
+ 115          INT8U iic_read_byte(INT8U ack)
+ 116          { 
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 3   
+
+ 117   1        INT8U i,dat = 0;
+ 118   1          
+ 119   1        RESETSCL();delay_us(4);
+ 120   1        SETSDA();  delay_us(1);   //写1，做为输入 防止钳位
+ 121   1        
+ 122   1        for(i = 8; i > 0; i--)
+ 123   1        {     //这样写就会用djnz指令
+ 124   2          SETSCL(); delay_us(2);
+ 125   2          (0 != READSDABIT()) ? (dat = ((dat << 1) | 0x01)) 
+ 126   2                 : (dat = ((dat << 1) & 0xfe));
+ 127   2          delay_us(3) ;
+ 128   2          RESETSCL(); delay_us(5);
+ 129   2        }
+ 130   1        // 输出应答信号
+ 131   1        if(1 == ack)
+ 132   1          { RESETSDA(); delay_us(2); }
+ 133   1        else{   SETSDA(); delay_us(2); }
+ 134   1        SETSCL(); delay_us(5);
+ 135   1        RESETSCL(); delay_us(3);
+ 136   1      //  SETSDA(); 
+ 137   1        return(dat);    
+ 138   1      }
+ 139          
+ 140          
+ 141          
+ 142          
+ 143          /************************************************************************
+ 144          ** 功能描述：IO配置     
+ 145          ************************************************************************/
+ 146          void   CBM7008IO_Config(void)
+ 147          {
+ 148   1      
+ 149   1      
+ 150   1        pSDA = 1;// 配置开漏
+ 151   1      
+ 152   1      
+ 153   1        pSCL = 1 ;    //配置开漏
+ 154   1      
+ 155   1      }
+ 156          /************************************************************************
+ 157          ** 功能描述：复位24C08    
+ 158          ************************************************************************/
+ 159          //void Ini_CBM7008(void)
+ 160          //{ 
+ 161          //  SETSCL()  ;Delay_us(10);
+ 162          //  SETSDA()  ;Delay_us(10);
+ 163          //}
+ 164          
+ 165          /************************************************************************
+ 166          ** 功能描述：设置CBM7008灵敏度            
+ 167          ** 输出参数: 返回状态 ,
+ 168          灵敏度顺序ADD，SUB，FUNC，>>,<<
+ 169          lmd=25   ,ADD 和 SUB 和FUNC 用力按有响应
+ 170          ************************************************************************/
+ 171          
+ 172          void Set_CBM7008_nLMD(void)
+ 173          {
+ 174   1        INT8U OkLmd = para.str.CBM7008LMD;
+ 175   1      
+ 176   1        if( (OkLmd > MAX_CBM7008LMD)||(OkLmd < MIN_CBM7008LMD) )
+ 177   1        { OkLmd = DEF_CBM7008LMD; }
+ 178   1      
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 4   
+
+ 179   1        iic_start();        // 起始条件
+ 180   1        iic_write_byte(DEV_ADDR_W); // 写设备地址,检测应答位
+ 181   1      //  delay_us(5);          // 延时
+ 182   1      
+ 183   1        iic_write_byte(MEM_ADDR_SET_NLMD);    // 写寄存器地址,检测应答位
+ 184   1      //  delay_us(5);          // 延时
+ 185   1      
+ 186   1        iic_write_byte(48);   // 写KEY0灵敏度,检测应答位    无按键
+ 187   1      //  iic_write_byte(30);   // 写KEY1灵敏度,检测应答位    无按键
+ 188   1      //  iic_write_byte(32);   // 写KEY1灵敏度,检测应答位    无按键
+ 189   1      //  iic_write_byte(32);   // 写KEY1灵敏度,检测应答位    OK键
+ 190   1        iic_write_byte(OkLmd);   // OK键
+ 191   1        iic_write_byte(48);   // 写KEY2灵敏度,检测应答位    无按键
+ 192   1        iic_write_byte(48);   // 写KEY3灵敏度,检测应答位    无按键
+ 193   1        iic_write_byte(48);   // 写KEY4灵敏度,检测应答位    无按键
+ 194   1        iic_write_byte(48);   // 写KEY5灵敏度,检测应答位    无按键
+ 195   1        iic_write_byte(48);   // 写KEY6灵敏度,检测应答位    无按键
+ 196   1        iic_write_byte(48);   // 写KEY7灵敏度,检测应答位    无按键
+ 197   1      //  delay_us(5);        // 延时
+ 198   1        iic_stop(); 
+ 199   1          // 结束条件 
+ 200   1      }
+ 201          
+ 202          
+ 203          /************************************************************************
+ 204          ** 功能描述：读CBM7008 ID            
+ 205          ** 输出参数: 返回ID号
+ 206          ************************************************************************/
+ 207          
+ 208          INT16U Get_CBM7008_ID(void)
+ 209          {
+ 210   1        INT16U temp=0;//,i;
+ 211   1        iic_start();        // 起始条件
+ 212   1        iic_write_byte(DEV_ADDR_W); // 写设备地址(写)
+ 213   1      //  delay_us(5);        // 延时
+ 214   1        iic_write_byte(MEM_ADDR_GET_ID);    // 写寄存器地址
+ 215   1      //  delay_us(5);        // 延时
+ 216   1        iic_stop();         // 结束条件
+ 217   1        iic_start();        // 起始条件
+ 218   1        iic_write_byte(DEV_ADDR_R); // 设备地址(读)
+ 219   1      //  delay_us(5);        // 延时
+ 220   1      
+ 221   1        temp = iic_read_byte(1)*256; //读数据，回发应答位     CB
+ 222   1        temp += iic_read_byte(0); // 读数据，不回发应答位
+ 223   1      
+ 224   1        iic_stop();         // 结束条件 
+ 225   1        return(temp);     
+ 226   1      }
+ 227          
+ 228          /************************************************************************
+ 229          ** 功能描述：读CBM7008 灵敏度            
+ 230          ** 输出参数: 返回ID号
+ 231          ************************************************************************/
+ 232          //INT8U lmd[8];
+ 233          void Get_CBM7008_nLMD(void)
+ 234          {
+ 235   1      //  INT8U lmd[8];//,i;
+ 236   1        iic_start();        // 起始条件
+ 237   1        iic_write_byte(DEV_ADDR_W); // 写设备地址(写)
+ 238   1      //  delay_us(5);        // 延时
+ 239   1        iic_write_byte(MEM_ADDR_GET_NLMD);    // 写寄存器地址
+ 240   1      //  delay_us(5);        // 延时
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 5   
+
+ 241   1        iic_stop();         // 结束条件
+ 242   1        iic_start();        // 起始条件
+ 243   1        iic_write_byte(DEV_ADDR_R); // 设备地址(读)
+ 244   1      //  delay_us(5);        // 延时
+ 245   1      
+ 246   1        lmd[0] =  iic_read_byte(1);
+ 247   1        lmd[1] =  iic_read_byte(1);
+ 248   1        lmd[2] =  iic_read_byte(1);
+ 249   1        lmd[3] =  iic_read_byte(1);
+ 250   1        lmd[4] =  iic_read_byte(1);
+ 251   1        lmd[5] =  iic_read_byte(1);
+ 252   1        lmd[6] =  iic_read_byte(1);
+ 253   1        lmd[7] =  iic_read_byte(0);
+ 254   1      
+ 255   1        iic_stop();         // 结束条件       
+ 256   1      }
+ 257          
+ 258          /************************************************************************
+ 259          ** 功能描述：读CBM7008 按键状态            
+ 260          ** 输出参数: 返回按键信息
+ 261          ************************************************************************/
+ 262          
+ 263          INT8U Get_CBM7008_KeySts(void)
+ 264          {
+ 265   1        INT8U chksum,keysts;
+ 266   1        iic_start();        // 起始条件
+ 267   1        iic_write_byte(DEV_ADDR_W); // 写设备地址(写)
+ 268   1      //  delay_us(5);        // 延时
+ 269   1        iic_write_byte(MEM_ADDR_GET_KEYSTS);    // 写寄存器地址
+ 270   1      //  delay_us(5);        // 延时
+ 271   1        iic_stop();         // 结束条件
+ 272   1        iic_start();        // 起始条件
+ 273   1        iic_write_byte(DEV_ADDR_R); // 设备地址(读)
+ 274   1      //  delay_us(5);        // 延时
+ 275   1      
+ 276   1        keysts = iic_read_byte(1);  // 读按键状态
+ 277   1        chksum = iic_read_byte(0);  // 读校验和
+ 278   1      
+ 279   1        iic_stop();         // 结束条件 
+ 280   1      
+ 281   1        if( chksum != (INT8U)(keysts+MEM_ADDR_GET_KEYSTS) )
+ 282   1        { keysts = 0; }
+ 283   1        return(keysts);     
+ 284   1      }
+ 285          
+ 286          /************************************************************************
+ 287          ** 功能描述：CBM7008 initlize
+ 288          ** 
+ 289          ************************************************************************/
+ 290          void CBM7008_init(void)
+ 291          {
+ 292   1        INT8U i;
+ 293   1        CBM7008IO_Config();     // IO 口配置
+ 294   1        
+ 295   1        for(i = 0; i < 3; i++)
+ 296   1        {
+ 297   2          if(CBM7008ID == Get_CBM7008_ID())     // 读ID
+ 298   2          { 
+ 299   3            Set_CBM7008_nLMD();     // 设置灵敏度
+ 300   3            Get_CBM7008_nLMD();     // 读灵敏度   
+ 301   3            return; 
+ 302   3          }
+C51 COMPILER V9.52.0.0   CBM7008                                                           11/14/2016 12:11:09 PAGE 6   
+
+ 303   2          DelayMs(300);            // 延时150ms
+ 304   2        }
+ 305   1      }
+ 306          
+ 307          #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    509    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

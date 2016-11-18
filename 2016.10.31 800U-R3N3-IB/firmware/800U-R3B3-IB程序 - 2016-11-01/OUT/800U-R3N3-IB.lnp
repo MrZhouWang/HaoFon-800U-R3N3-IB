@@ -1,0 +1,18 @@
+"..\OUT\STARTUP.obj",
+"..\OUT\adc.obj",
+"..\OUT\delay.obj",
+"..\OUT\DWG.obj",
+"..\OUT\exti.obj",
+"..\OUT\init.obj",
+"..\OUT\key.obj",
+"..\OUT\led.obj",
+"..\OUT\main.obj",
+"..\OUT\timer.obj",
+"..\OUT\uart.obj",
+"..\OUT\rs485.obj",
+"..\OUT\flash.obj",
+"..\OUT\process.obj",
+"..\OUT\crc.obj" 
+TO "..\OUT\800U-R3N3-IB" 
+PRINT(".\Listings\800U-R3N3-IB.m51") RAMSIZE(256) 
+XDATA( 0X1400-0X15FF )

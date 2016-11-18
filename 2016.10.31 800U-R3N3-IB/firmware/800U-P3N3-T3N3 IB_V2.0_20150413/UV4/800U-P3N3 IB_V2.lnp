@@ -1,0 +1,10 @@
+"..\UV4\CBM7008.obj",
+"..\UV4\crc.obj",
+"..\UV4\eeprom.obj",
+"..\UV4\key.obj",
+"..\UV4\led.obj",
+"..\UV4\main.obj",
+"..\UV4\process.obj",
+"..\UV4\uart.obj" 
+TO "..\UV4\800U-P3N3 IB_V2.0_20140409" 
+PRINT(".\800U-P3N3 IB_V2.m51") RAMSIZE(256) 

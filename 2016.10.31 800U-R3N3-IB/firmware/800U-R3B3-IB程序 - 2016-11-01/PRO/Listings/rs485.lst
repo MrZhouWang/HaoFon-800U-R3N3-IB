@@ -1,0 +1,69 @@
+C51 COMPILER V9.52.0.0   RS485                                                             11/17/2016 16:55:14 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE RS485
+OBJECT MODULE PLACED IN ..\OUT\rs485.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\SRC\rs485.c ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE INCDIR(.
+                    -.\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\rs485.lst) TABS(2) OBJECT(..\OUT\rs485.obj)
+
+line level    source
+
+   1          #include "include.h"
+   2          ////////////////////////////////////////////////////////////////////////////////
+   3          // 功能描述 : rs485初始化
+   4          // 输入参数 : 
+   5          // 返回参数 : 
+   6          // 说明     :  
+   7          ////////////////////////////////////////////////////////////////////////////////
+   8          void UART485_Init(void)
+   9          {
+  10   1        UART_Init();
+  11   1        
+  12   1        uart.rIndex = 0;
+  13   1        uart.rFlag  = 0;
+  14   1        uart.rTimer = 0;  
+  15   1      }
+  16          ////////////////////////////////////////////////////////////////////////////////
+  17          // 功能描述 : 485发送字符串程序
+  18          // 输入参数 : 
+  19          // 返回参数 : 
+  20          // 说明     :  
+  21          ////////////////////////////////////////////////////////////////////////////////
+  22          void Send485SeriaDate(INT8U *Ram, INT16U  len)
+  23          {
+  24   1        UINT8 ite;
+  25   1        
+  26   1        M485_CTRL_ON;
+  27   1        delay_ms(1);
+  28   1        for(ite=0;ite<len;ite++)
+  29   1        {
+  30   2           ACC = Ram[ite];
+  31   2           if(P == 0)
+  32   2           {
+  33   3             TB80 = 0;
+  34   3           }
+  35   2           else
+  36   2           {
+  37   3             TB80 =1;
+  38   3           }
+  39   2           Usart1_SendByte(Ram[ite]);
+  40   2        }
+  41   1        delay_ms(1);
+  42   1        M485_CTRL_OFF;//接收状态
+  43   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     87    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.52.0.0   RS485                                                             11/17/2016 16:55:14 PAGE 2   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,161 @@
+C51 COMPILER V9.52.0.0   MAIN                                                              11/17/2016 16:55:11 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN ..\OUT\main.obj
+COMPILER INVOKED BY: C:\Program Files\kile\C51\BIN\C51.EXE ..\SRC\main.c ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE INCDIR(..
+                    -\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(..\OUT\main.obj)
+
+line level    source
+
+   1          /********************************************************************************
+   2          工作状态下 
+   3          
+   4                使能     按键     灯        输出
+   5                
+   6                 0       按下     黄         有
+   7                 0       松开     灭         无
+   8                 1       松开     红         无
+   9                 1       按下     绿         有    
+  10          
+  11          使能：1 使能输入   0 无使能输入
+  12          
+  13          
+  14          基准采样在定时器初上电几个周期内完成，与平时采样环境保持一致
+  15          
+  16          2016.09.18  感应离开延时100ms灯色切换
+  17          2016.10.27  开关状态对比值采用绝对值
+  18          2016.10.27  基准采样在上电的时候取100次平均值 标准基准值在1.35V左右 如果基准值不在这个范围内则红灯常亮在报
+             -警状态
+  19          2016.10.28  集准采样发生异常设备会进行相应的异常指示
+  20          ********************************************************************************/
+  21          
+  22          #define MAIN_GLOBAL
+  23          #include "include.h"      
+  24          
+  25          bit f_prossout= FALSE;
+  26          bit valid_ok = FALSE;
+  27          //////////////////////////////////////////////////////////////////////////////////
+  28          //// 功能描述 : 系统频率设置
+  29          //// 输入参数 : 
+  30          //// 返回参数 : 
+  31          //// 说明     : 
+  32          //////////////////////////////////////////////////////////////////////////////////
+  33          void OSCILLATOR_Init (void)
+  34          {     
+  35   1        INT8U i;
+  36   1        OSCICN   = 0x06;                //频率为24.5Mhz /2 =12.25
+  37   1        for(i = 500; i>0; i--);
+  38   1        while((OSCICN & 0x10) == 0) ;   // 判断是否正常振荡
+  39   1      }
+  40          //////////////////////////////////////////////////////////////////////////////////
+  41          //// 功能描述 : 主函数
+  42          //// 输入参数 : 
+  43          //// 返回参数 : 
+  44          //// 说明     :  
+  45          //////////////////////////////////////////////////////////////////////////////////
+  46          void main(void)
+  47          { 
+  48   1        
+  49   1        PCA0MD &= ~0x40;             //看门狗定时器被禁止
+  50   1        RSTSRC |= 0x02;              //使能VDD电压监视
+  51   1        
+  52   1        EA = 0;                      //两个操作码来禁止中断
+  53   1        EA = 0;
+C51 COMPILER V9.52.0.0   MAIN                                                              11/17/2016 16:55:11 PAGE 2   
+
+  54   1        
+  55   1        PORT_Init ();                // Initialize crossbar and GPIO
+  56   1        delay_ms(100);               
+  57   1          
+  58   1        OSCILLATOR_Init();           // Initialize the system clock   
+  59   1        Timer0_Init();               // Timer0 自动重装模式2
+  60   1        Timer2_Init();               // Timer2 Initialization
+  61   1        UART485_Init();              // 串口初始化
+  62   1        ADC_Init ();                 // 设置ADC
+  63   1      
+  64   1      
+  65   1      
+  66   1        Base_ADC();                  //基准采样
+  67   1        LoadParaFromFlash();         // 读取灵敏度值
+  68   1        led_blink();
+  69   1        sys_data_reset();            //系统参数复位
+  70   1        
+  71   1        
+  72   1        
+  73   1      
+  74   1        
+  75   1        
+  76   1        Display_Clear();
+  77   1        CurDispMode = DISPMODE_NONE;  
+  78   1        M485_CTRL_OFF;                               // 关闭发送DE端口，打开接收/RE485端口
+  79   1        led_flash_period = 1000;                     // 闪烁周期控制
+  80   1        led_flash_mode   = LED_FLASH_MODE_ALWAYS ;   // 长亮模式
+  81   1        TaskStats      = TASK_NONE;                  // 非工作状态
+  82   1        ClearFlg     = OFF;
+  83   1        Key.b.Short    = FALSE;                      // 短按释放
+  84   1        Key.b.LongOnce = FALSE;                      // 长按一次释放  
+  85   1        Key.b.Long     = FALSE;                      // 长按释放
+  86   1        f_KeyEnable    = TRUE;                       // 使能按键
+  87   1        SystemLocked   = OFF;                        // 系统解锁
+  88   1        CurDispMode    = DISPMODE_NONE;              // 当前任务状态设为非运行状态
+  89   1        LED_MultiCast_Mode =OFF;                     // 组播模式关
+  90   1        para.str.FinishedLED=LED_NONE;               // F1初始化为灭
+  91   1        
+  92   1        
+  93   1        
+  94   1        Interrupt_Init ();           // 开中断
+  95   1        
+  96   1        
+  97   1        while(1)
+  98   1        {
+  99   2          PCA0CPH2 =   1;                              //喂狗
+ 100   2          // 1个信号灯与3 组led指示灯闪烁控制
+ 101   2          if(AD_Base_OK != OK)                       //采集基准电压失败 指示 
+ 102   2          {
+ 103   3             if(ADC_BaseErrNum == 0)
+ 104   3                ADC_BASE_ERR_BLINK();   
+ 105   3          }
+ 106   2          Key_Scan();                                //按键扫描处理程序
+ 107   2          CMD_led_flash();                           //灯闪烁周期以及灯色控制
+ 108   2             
+ 109   2          
+ 110   2                          
+ 111   2                                                     //非配置状态
+ 112   2          if (uart.rFlag == ON)
+ 113   2          {  
+ 114   3           // Send485SeriaDate((UINT8 *)uart.rBuffer, uart.rIndex);   
+ 115   3            Cmd_Process();                           //处理主机下发命令
+C51 COMPILER V9.52.0.0   MAIN                                                              11/17/2016 16:55:11 PAGE 3   
+
+ 116   3            uart.rFlag   = OFF;
+ 117   3            uart.rIndex  = 0;
+ 118   3          }
+ 119   2                                                     //显示LOADING 过程 '-' '--' '---' '----' '-----' '------'
+ 120   2          if((digital_led_loading == ON))
+ 121   2          {
+ 122   3            if(sys.digital_led_load_cnt == 0)
+ 123   3            {
+ 124   4              digital_led_loading = OFF;
+ 125   4              sys.beWaitNewData = OFF;                 
+ 126   4            }
+ 127   3          }
+ 128   2          PCA0CPH2 = 1;                              //喂狗     
+ 129   2        } 
+ 130   1      }
+ 131          
+ 132          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    167    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =     20    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
