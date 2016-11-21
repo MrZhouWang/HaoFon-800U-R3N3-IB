@@ -1,4 +1,4 @@
-C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 10:46:32 PAGE 1   
+C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 11:02:23 PAGE 1   
 
 
 C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TIMER
@@ -62,7 +62,7 @@ line level    source
   52   1      
   53   1           if(ADC_BaseErrNum>0)                 
   54   1           {
-C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 10:46:32 PAGE 2   
+C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 11:02:23 PAGE 2   
 
   55   2              ADC_BaseErrNum--;
   56   2           }
@@ -126,7 +126,7 @@ line level    source
  114   1        
  115   1            //µÝ¼õ¼ÆËãÆ÷£¬×Ô¼õ1
  116   1          if (sys.digital_led_load_cnt != 0)
-C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 10:46:32 PAGE 3   
+C51 COMPILER V9.52.0.0   TIMER                                                             11/21/2016 11:02:23 PAGE 3   
 
  117   1              sys.digital_led_load_cnt--;    
  118   1          
