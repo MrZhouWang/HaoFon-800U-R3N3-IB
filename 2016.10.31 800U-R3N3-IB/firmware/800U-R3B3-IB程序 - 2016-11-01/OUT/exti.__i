@@ -1,0 +1,1 @@
+"..\SRC\exti.c" ROM(COMPACT) OPTIMIZE (8,SPEED) BROWSE INCDIR(..\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\exti.lst) TABS (2) OBJECT(..\OUT\exti.obj)

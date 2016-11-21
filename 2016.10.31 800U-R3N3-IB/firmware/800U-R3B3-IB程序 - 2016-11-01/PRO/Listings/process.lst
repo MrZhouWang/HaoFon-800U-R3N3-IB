@@ -1,4 +1,4 @@
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 1   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 1   
 
 
 C51 COMPILER V9.52.0.0, COMPILATION OF MODULE PROCESS
@@ -62,7 +62,7 @@ line level    source
   52   2          retCRC = CRC16    (uart.rBuffer, uart.rIndex-2);    //CRC
   53   2          usCRC  = (UINT16) (uart.rBuffer [uart.rIndex-2]);   //CRC_L;
   54   2          usCRC += (UINT16) (uart.rBuffer [uart.rIndex-1]<<8);  //CRC_H
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 2   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 2   
 
   55   2          //retCRC = usCRC;
   56   2          if (retCRC == usCRC)            //crc校验成功 
@@ -126,7 +126,7 @@ line level    source
  114   3            else if(uart.rBuffer[3] == 0X11)        //广播清除
  115   3            {
  116   4              Display_Clear();
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 3   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 3   
 
  117   4              sys_data_reset();
  118   4            }
@@ -190,7 +190,7 @@ line level    source
  176   4            }
  177   3            //00 06 ?? 0xA0 ?? ## CRCH CRCL
  178   3            else if(uart.rBuffer[3] == 0XA0)          //广播设置参数4(显示模式设定)///////////                
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 4   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 4   
 
  179   3            {
  180   4      
@@ -254,7 +254,7 @@ line level    source
  235   7                  }
  236   6                  else if(uart.rBuffer[3] == 0x20)    //锁定解锁
  237   6                  {
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 5   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 5   
 
  238   7                    if(uart.rBuffer[5] == 0x00)     //解锁
  239   7                    {
@@ -318,7 +318,7 @@ line level    source
  287   6                  //否则，处理
  288   6                  //任务驱动型信息
  289   6      
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 6   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 6   
 
  290   6                  if( (CurDispMode == DISPMODE_TASK)&&(f_repeat == TRUE) )
  291   6                  {
@@ -382,7 +382,7 @@ line level    source
  348            input:   none     
  349            output:  none         
  350          *******************************************************************************/
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 7   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 7   
 
  351          void Display_Info(INT8U * buf)
  352          {
@@ -446,7 +446,7 @@ line level    source
  410          {
  411   1        if( (TRUE == Key.b.Short) )
  412   1        {
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 8   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 8   
 
  413   2            ClearFlg = ON;
  414   2            
@@ -510,7 +510,7 @@ line level    source
  472   1        uart.wBuffer[2] = 0x00;                         //function code
  473   1        usCRC = CRC16(uart.wBuffer, 3);
  474   1        uart.wBuffer[3] = (UINT8)usCRC;
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 9   
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 9   
 
  475   1        uart.wBuffer[4] = (UINT8)(usCRC>>8);
  476   1        uart.wLen   = 5;                            
@@ -574,7 +574,7 @@ line level    source
  531   4              uart.wBuffer[4] = task_finished_num;    
  532   4              uart.wBuffer[5] = task_ed_goods_numH[0];                        
  533   4              uart.wBuffer[6] = task_ed_goods_numL[0];    
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 10  
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 10  
 
  534   4                        
  535   4              usCRC = CRC16(uart.wBuffer, 7);
@@ -638,7 +638,7 @@ line level    source
  593   1      }
  594          /*******************************************************************************
  595                      对多字节写命令错误的响应
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 11  
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 11  
 
  596            input:   none     
  597            output:  none         
@@ -702,7 +702,7 @@ line level    source
  655   4              task_ed_goods_numL[0]   = task_ed_goods_numL[1];
  656   4      //        taks_finished_Full[0]   = taks_finished_Full[1];
  657   4            }
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 12  
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 12  
 
  658   3            else
  659   3            {
@@ -766,7 +766,7 @@ line level    source
  716   6                  task_un_goods_numH[1]   = uart.rBuffer[curIndex+1];
  717   6                  task_un_goods_numL[1]   = uart.rBuffer[curIndex+2];                     
  718   6                }
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 13  
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 13  
 
  719   5                else if(uart.rBuffer[5] == 0X01)  //带序列号的协议
  720   5                {
@@ -830,7 +830,7 @@ line level    source
  777   2        case 0:   led_flash_period = 80;    break;
  778   2        case 1:   led_flash_period = 160;   break;
  779   2        case 2:   led_flash_period = 320;   break;
-C51 COMPILER V9.52.0.0   PROCESS                                                           11/17/2016 16:55:15 PAGE 14  
+C51 COMPILER V9.52.0.0   PROCESS                                                           11/21/2016 10:46:33 PAGE 14  
 
  780   2        case 3:   led_flash_period = 640;   break;
  781   2        default:  led_flash_period = 640;   break;
